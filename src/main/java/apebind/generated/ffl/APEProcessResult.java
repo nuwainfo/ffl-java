@@ -1,0 +1,14 @@
+package apebind.generated.ffl;
+
+import java.util.List;
+
+public record APEProcessResult(
+    List<String> argv,
+    int returnCode,
+    String stdout,
+    String stderr
+) {
+    public APEProcessResult {
+        argv = List.copyOf(argv);
+    }
+}

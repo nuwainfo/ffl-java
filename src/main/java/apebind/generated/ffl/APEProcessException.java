@@ -1,0 +1,20 @@
+package apebind.generated.ffl;
+
+public final class APEProcessException extends RuntimeException {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
+
+    private final transient APEProcessResult result;
+
+    public APEProcessException(APEProcessResult result) {
+        super(
+            "APE exited with code " + result.returnCode() + ": " + result.stderr().trim()
+                + APEClient.wslInteropGuidance(result.stderr())
+        );
+        this.result = result;
+    }
+
+    public APEProcessResult result() {
+        return result;
+    }
+}
