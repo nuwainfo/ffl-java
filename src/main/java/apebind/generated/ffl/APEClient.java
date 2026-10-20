@@ -1,5 +1,6 @@
 package apebind.generated.ffl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -7,24 +8,62 @@ import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public final class APEClient {
-    private final Path binaryPath;
+    private final String binaryName;
+    private final APERuntime runtime;
     private final Map<String, Object> operations;
-    private final Map<String, Object> runtime;
+    private final Map<String, Object> policy;
+    private volatile Path resolvedBinary;
 
-    public APEClient(Path binaryPath, Map<String, Object> operations, Map<String, Object> runtime) {
-        this.binaryPath = binaryPath;
+    public APEClient(
+        String binaryName,
+        APERuntime runtime,
+        Map<String, Object> operations,
+        Map<String, Object> policy
+    ) {
+        this.binaryName = binaryName;
+        this.runtime = Objects.requireNonNull(runtime, "runtime");
         this.operations = Map.copyOf(operations);
-        this.runtime = Map.copyOf(runtime);
+        this.policy = Map.copyOf(policy);
+    }
+
+    public APEClient(Path binaryPath, Map<String, Object> operations, Map<String, Object> policy) {
+        this(null, APERuntime.builder().binary(binaryPath).build(), operations, policy);
+    }
+
+    public APERuntime runtime() {
+        return runtime;
+    }
+
+    private Path binaryPath() {
+        Path explicit = runtime.binary();
+        if (explicit != null) {
+            return explicit;
+        }
+
+        Path resolved = resolvedBinary;
+        if (resolved == null) {
+            if (binaryName == null) {
+                throw new IllegalStateException("APE binary path is not configured");
+            }
+
+            resolved = BinaryResource.resolve(binaryName);
+            resolvedBinary = resolved;
+        }
+
+        return resolved;
     }
 
     static int normalizeAPEReturnCode(int returnCode) {
@@ -47,8 +86,10 @@ public final class APEClient {
 
     private static boolean isWSL2() {
         try {
-            String version = Files.readString(Path.of("/proc/version"), StandardCharsets.UTF_8)
-                .toLowerCase(Locale.ROOT);
+            String version = new String(
+                Files.readAllBytes(Paths.get("/proc/version")),
+                StandardCharsets.UTF_8
+            ).toLowerCase(Locale.ROOT);
             return version.contains("microsoft") || version.contains("wsl");
         } catch (IOException caught) {
             return false;
@@ -286,7 +327,19 @@ public final class APEClient {
         return argv;
     }
 
-    private List<String> launchCommand(List<String> argv) {
+    /**
+     * The full command line used to start the APE with {@code argv}: the runtime's
+     * launcher prefix, the binary, then the arguments, wrapped in the platform shell
+     * when the runtime asks for it.
+     */
+    public List<String> commandLine(List<String> argv) {
+        List<String> target = new ArrayList<>(runtime.launcher());
+        target.add(binaryPath().toString());
+        target.addAll(argv);
+        if (!runtime.shellWrapper()) {
+            return target;
+        }
+
         List<String> command = new ArrayList<>();
         if (isWindows()) {
             // Java starts a direct child without a console on Windows. That prevents
@@ -295,22 +348,41 @@ public final class APEClient {
             command.add("/d");
             command.add("/s");
             command.add("/c");
-            command.add(windowsCommand(argv));
+            command.add(windowsCommand(target));
             return command;
         }
 
         command.add("/bin/sh");
         command.add("-c");
         command.add("exec \"$0\" \"$@\"");
-        command.add(binaryPath.toString());
-        command.addAll(argv);
+        command.addAll(target);
         return command;
     }
 
-    private String windowsCommand(List<String> argv) {
-        StringBuilder command = new StringBuilder("\"call ");
-        command.append(quoteWindowsArgument(binaryPath.toString()));
-        for (String argument : argv) {
+    /**
+     * The environment handed to the APE: the caller's environment minus the schema's
+     * {@code env_unset} policy, then the runtime's overrides.
+     */
+    public Map<String, String> environment() {
+        Map<String, String> environment = new LinkedHashMap<>(System.getenv());
+        applyEnvironment(environment);
+        return environment;
+    }
+
+    private void applyEnvironment(Map<String, String> environment) {
+        Object envUnset = policy.get("env_unset");
+        if (envUnset instanceof List<?> variables) {
+            for (Object variable : variables) {
+                environment.remove(String.valueOf(variable));
+            }
+        }
+
+        environment.putAll(runtime.environment());
+    }
+
+    private static String windowsCommand(List<String> target) {
+        StringBuilder command = new StringBuilder("\"call");
+        for (String argument : target) {
             command.append(' ').append(quoteWindowsArgument(argument));
         }
 
@@ -342,13 +414,10 @@ public final class APEClient {
     }
 
     private Process spawn(List<String> argv) {
-        ProcessBuilder builder = new ProcessBuilder(launchCommand(argv));
-        Map<String, String> environment = builder.environment();
-        Object envUnset = runtime.get("env_unset");
-        if (envUnset instanceof List<?> variables) {
-            for (Object variable : variables) {
-                environment.remove(String.valueOf(variable));
-            }
+        ProcessBuilder builder = new ProcessBuilder(commandLine(argv));
+        applyEnvironment(builder.environment());
+        if (runtime.workingDirectory() != null) {
+            builder.directory(runtime.workingDirectory().toFile());
         }
 
         try {
@@ -358,10 +427,21 @@ public final class APEClient {
         }
     }
 
-    private static CompletableFuture<String> collect(java.io.InputStream stream) {
+    static byte[] readFully(InputStream stream) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        int count;
+        while ((count = stream.read(buffer)) >= 0) {
+            output.write(buffer, 0, count);
+        }
+
+        return output.toByteArray();
+    }
+
+    private static CompletableFuture<String> collect(InputStream stream) {
         return CompletableFuture.supplyAsync(() -> {
             try (stream) {
-                return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+                return new String(readFully(stream), StandardCharsets.UTF_8);
             } catch (IOException error) {
                 throw new IllegalStateException("Failed to read APE output", error);
             }
@@ -385,7 +465,7 @@ public final class APEClient {
             }
 
             if (!exited) {
-                destroyProcessTree(process, true);
+                Processes.destroyTree(process, true);
                 process.waitFor();
                 stdout.join();
                 stderr.join();
@@ -393,7 +473,7 @@ public final class APEClient {
             }
         } catch (InterruptedException error) {
             Thread.currentThread().interrupt();
-            destroyProcessTree(process, true);
+            Processes.destroyTree(process, true);
             throw new IllegalStateException("Interrupted while waiting for APE", error);
         }
 
@@ -408,24 +488,6 @@ public final class APEClient {
         }
 
         return result;
-    }
-
-    private static void destroyProcessTree(Process process, boolean forcibly) {
-        try (var descendants = process.toHandle().descendants()) {
-            for (ProcessHandle descendant : descendants.toList()) {
-                if (forcibly) {
-                    descendant.destroyForcibly();
-                } else {
-                    descendant.destroy();
-                }
-            }
-        }
-
-        if (forcibly) {
-            process.destroyForcibly();
-        } else {
-            process.destroy();
-        }
     }
 
     private ProcessSession startPersistent(
@@ -480,7 +542,7 @@ public final class APEClient {
 
     private static Object readJsonResult(ResultFile resultFile, Map<String, Object> resultConfig) {
         try {
-            String text = Files.readString(resultFile.path(), StandardCharsets.UTF_8);
+            String text = new String(Files.readAllBytes(resultFile.path()), StandardCharsets.UTF_8);
             return extractField(Json.parse(text), string(resultConfig.get("field")));
         } catch (IOException error) {
             throw new IllegalStateException("Failed to read APE JSON result", error);
@@ -587,24 +649,16 @@ public final class APEClient {
                 stdinSource,
                 captureStdout
             );
-            try {
-                if (
-                    "json_file".equals(string(resultConfig.get("format")))
-                    && resultConfig.get("ready_timeout_seconds") != null
-                ) {
-                    session.setResult(waitForJsonResult(session, resultFile, resultConfig));
-                }
-
-                return session;
-            } catch (RuntimeException error) {
-                if (session.running()) {
-                    session.stop();
-                } else {
-                    session.cleanupResultFile();
-                }
-
-                throw error;
+            if (
+                "json_file".equals(string(resultConfig.get("format")))
+                && resultConfig.get("ready_timeout_seconds") != null
+            ) {
+                // Awaited on the first ProcessSession.result() call, not here: the core may
+                // write the file only late in the run (an upload's link after the upload).
+                session.deferResult(() -> waitForJsonResult(session, resultFile, resultConfig));
             }
+
+            return session;
         }
 
         try {
@@ -623,12 +677,12 @@ public final class APEClient {
     }
 
     public APEProcessResult raw(List<?> arguments, Double timeoutSeconds) {
-        List<String> argv = arguments.stream().map(APEClient::stringify).toList();
+        List<String> argv = arguments.stream().map(APEClient::stringify).collect(Collectors.toList());
         return runCommand(argv, timeoutSeconds);
     }
 
     public ProcessSession rawPersistent(List<?> arguments) {
-        List<String> argv = arguments.stream().map(APEClient::stringify).toList();
+        List<String> argv = arguments.stream().map(APEClient::stringify).collect(Collectors.toList());
         return startPersistent(argv, null, null, true);
     }
 

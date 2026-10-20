@@ -13,10 +13,10 @@ commands:
   positionals:
   - name: FILE_OR_FOLDER
     api_name: paths
-    value_type: path
+    value_type: string
     required: false
     multiple: true
-    help: File(s) or folder(s) to share.
+    help: 'File(s) or folder(s) to share; also ''-'' for stdin, ''@list.txt'', or a VFS URL with --vfs.'
   options:
   - flags:
     - --version
@@ -99,6 +99,25 @@ commands:
     choices: []
     help: Comma-separated patterns to exclude files/folders by name (e.g. '*.log,.svn,__pycache__').
       Prefix with 're:' for regex (e.g. 're:\.tmp$'). Applies at any depth.
+  - flags:
+    - --watch
+    api_name: watch
+    value_type: boolean
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Watch a folder for new direct child folders and publish each as an immutable
+      delivery
+  - flags:
+    - --watch-settle
+    api_name: watch_settle
+    value_type: integer
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: 'Seconds a new delivery folder must remain unchanged (default: 5)'
   - flags:
     - --json
     api_name: json
@@ -470,6 +489,16 @@ commands:
     help: Resume incomplete download (like curl -C), otherwise overwrite existing
       file
   - flags:
+    - --follow
+    - --watch
+    api_name: follow
+    value_type: boolean
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Keep watching a collection URL and download newly appended deliveries
+  - flags:
     - --auth-user
     api_name: auth_user
     value_type: string
@@ -668,6 +697,276 @@ commands:
     choices: []
     help: Base URL for OTP email API (e.g. https://myserver.com/api). Required for
       --recipient- auth email
+- path:
+  - login
+  summary: Login to FastFileLink account
+  positionals: []
+  options:
+  - flags:
+    - --email
+    api_name: email
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Email address for login (optional - will prompt if not provided)
+  - flags:
+    - --mode
+    api_name: mode
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices:
+    - web
+    - cli
+    help: 'Login mode: ''web'' for browser-based auth, ''cli'' for command-line auth
+      (default: web, or cli without GUI)'
+  - flags:
+    - --version
+    api_name: version
+    value_type: boolean
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Show version information and enabled addons
+  - flags:
+    - --cli
+    api_name: cli
+    value_type: boolean
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Run in CLI mode without GUI (optional)
+  - flags:
+    - --log-level
+    api_name: log_level
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: 'Set logging level (DEBUG, INFO, WARNING, ERROR) or path to logging config
+      JSON file (default: WARNING)'
+  - flags:
+    - --proxy
+    api_name: proxy
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: 'Proxy server for all outbound connections. Formats: [user:pass@]host:port
+      (defaults to SOCKS5), socks5[h]://[user:pass@]host:port, http[s]://[user:pass@]host:port.
+      SOCKS5 proxies work for both tunnel and HTTP requests. HTTP proxies only work
+      for HTTP requests (not tunnel)'
+  - flags:
+    - --hook
+    api_name: hook
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: 'Webhook URL for forwarding events to parent process or external service.
+      Format: http://[user:pass@]host:port/path (e.g., http://app:token@127.0.0.1:12345/events).
+      Auth credentials are optional but recommended.'
+  - flags:
+    - --enable-reporting
+    api_name: enable_reporting
+    value_type: boolean
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Enable error reporting to FastFileLink server for exception diagnostics
+  - flags:
+    - --pickup-code
+    api_name: pickup_code
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Custom 6-digit pickup code for recipient verification
+  - flags:
+    - --recipient-auth
+    api_name: recipient_auth
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Enable recipient verification before download
+- path:
+  - logout
+  summary: Logout and clear credentials
+  positionals: []
+  options:
+  - flags:
+    - --version
+    api_name: version
+    value_type: boolean
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Show version information and enabled addons
+  - flags:
+    - --cli
+    api_name: cli
+    value_type: boolean
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Run in CLI mode without GUI (optional)
+  - flags:
+    - --log-level
+    api_name: log_level
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: 'Set logging level (DEBUG, INFO, WARNING, ERROR) or path to logging config
+      JSON file (default: WARNING)'
+  - flags:
+    - --proxy
+    api_name: proxy
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: 'Proxy server for all outbound connections. Formats: [user:pass@]host:port
+      (defaults to SOCKS5), socks5[h]://[user:pass@]host:port, http[s]://[user:pass@]host:port.
+      SOCKS5 proxies work for both tunnel and HTTP requests. HTTP proxies only work
+      for HTTP requests (not tunnel)'
+  - flags:
+    - --hook
+    api_name: hook
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: 'Webhook URL for forwarding events to parent process or external service.
+      Format: http://[user:pass@]host:port/path (e.g., http://app:token@127.0.0.1:12345/events).
+      Auth credentials are optional but recommended.'
+  - flags:
+    - --enable-reporting
+    api_name: enable_reporting
+    value_type: boolean
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Enable error reporting to FastFileLink server for exception diagnostics
+  - flags:
+    - --pickup-code
+    api_name: pickup_code
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Custom 6-digit pickup code for recipient verification
+  - flags:
+    - --recipient-auth
+    api_name: recipient_auth
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Enable recipient verification before download
+- path:
+  - status
+  summary: Show authentication status
+  positionals: []
+  options:
+  - flags:
+    - --version
+    api_name: version
+    value_type: boolean
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Show version information and enabled addons
+  - flags:
+    - --cli
+    api_name: cli
+    value_type: boolean
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Run in CLI mode without GUI (optional)
+  - flags:
+    - --log-level
+    api_name: log_level
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: 'Set logging level (DEBUG, INFO, WARNING, ERROR) or path to logging config
+      JSON file (default: WARNING)'
+  - flags:
+    - --proxy
+    api_name: proxy
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: 'Proxy server for all outbound connections. Formats: [user:pass@]host:port
+      (defaults to SOCKS5), socks5[h]://[user:pass@]host:port, http[s]://[user:pass@]host:port.
+      SOCKS5 proxies work for both tunnel and HTTP requests. HTTP proxies only work
+      for HTTP requests (not tunnel)'
+  - flags:
+    - --hook
+    api_name: hook
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: 'Webhook URL for forwarding events to parent process or external service.
+      Format: http://[user:pass@]host:port/path (e.g., http://app:token@127.0.0.1:12345/events).
+      Auth credentials are optional but recommended.'
+  - flags:
+    - --enable-reporting
+    api_name: enable_reporting
+    value_type: boolean
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Enable error reporting to FastFileLink server for exception diagnostics
+  - flags:
+    - --pickup-code
+    api_name: pickup_code
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Custom 6-digit pickup code for recipient verification
+  - flags:
+    - --recipient-auth
+    api_name: recipient_auth
+    value_type: string
+    required: false
+    multiple: false
+    value_optional: false
+    choices: []
+    help: Enable recipient verification before download
 operations:
 - name: share
   command:
@@ -708,6 +1007,42 @@ operations:
 - name: version
   command:
   - share
+  execution: oneshot
+  result:
+    format: text
+    field: null
+    option_flag: null
+    ready_timeout_seconds: null
+    strip: true
+  process:
+    timeout_seconds: 30.0
+- name: login
+  command:
+  - login
+  execution: persistent
+  result:
+    format: command
+    field: null
+    option_flag: null
+    ready_timeout_seconds: null
+    strip: true
+  process:
+    timeout_seconds: null
+- name: logout
+  command:
+  - logout
+  execution: oneshot
+  result:
+    format: command
+    field: null
+    option_flag: null
+    ready_timeout_seconds: null
+    strip: true
+  process:
+    timeout_seconds: 30.0
+- name: status
+  command:
+  - status
   execution: oneshot
   result:
     format: text

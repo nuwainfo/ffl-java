@@ -54,13 +54,46 @@ try (var session = Ffl.share(Path.of("release.zip"))) {
 ```
 
 `session.on(name, listener)` follows FFL's integrated events: `ready` is
-`/share/available`, `started` is `/transfer/create`, `progress` is
-`/transfer/progress`, `completed` is `/transfer/complete`, and `failed` is
-`/transfer/fail`. HTTP, WebRTC, and direct P2P also emit their own events, such
-as `/download/complete`. Those stay on `session.onRaw`. `completed` follows
+`/share/available`, `link` is `/share/link/create`, `started` is `/transfer/create`,
+`progress` is `/transfer/progress`, `completed` is `/transfer/complete`, and
+`failed` is `/transfer/fail`. HTTP, WebRTC, and direct P2P also emit their own
+events, such as `/download/complete`. Those stay on `session.onRaw`, with every
+wire name available as a constant on `FFLHookEvents` and the payloads documented
+in `binding/ffl.hook-events.md`; `event.link()`, `event.error()` and
+`event.progress()` read the common fields. `completed` follows
 `/transfer/complete`, so one transfer notifies that listener once. Each accepted
-hook POST is answered with HTTP 200 and `{}`. The bundled `ffl.com` emits these
+hook POST is answered with HTTP 200 and `{}` unless a `ShareOptions` responder
+answers it (`respondTo`, `uploadConfirmation`). The bundled `ffl.com` emits these
 names.
+
+`session.onStdoutLine(listener)` and `session.onStderrLine(listener)` hand over the
+process's stdout and stderr line by line (the core's log lines and tracebacks go to
+stderr), replaying what was printed before the listener was attached.
+`session.onAny(listener)` receives every hook event whatever its name, for a single
+dispatcher. `session.link()` waits for the core's `--json` result the first time it
+is called (up to 20 seconds; a timeout throws `APETimeoutException` and leaves the
+share running), so an app that only listens to the `link` event never blocks on it;
+in upload mode the core writes that file only after the upload, so prefer the event
+there. `FFL.shareVfs("vfs://host:port", options)` shares a tree served by a VFS
+endpoint instead of local files: the URI is the share target itself, and the
+core's own `--vfs` server mode is not involved. `FFLEnvironment.language(...)` and
+`FFLEnvironment.loggingLevel(...)` build the variables the core reads at start-up
+for `APERuntime.builder().environment(...)`.
+
+Routes a `/hook/server/endpoints/register` responder registers (a share page's
+`/manifest`, `/thumb`, ...) are fetched by the core from the hook URL's host and
+port, which is ffl-java's own receiver. `ShareOptions.Builder.hookEndpointProxy(base)`
+makes the receiver forward every request that is not a hook event to `base + path`
+(method, query, headers and body included) and relay the status, headers and body
+back; without it those requests are answered 405.
+
+Account commands: `FFL.login(email)` starts the one-time-code dialogue of `ffl login
+--mode cli` and returns a `LoginSession` (`otpRequested()`, `submitOtp(code)`,
+`onOtpRejected(...)`, `result()`); the core is detected waiting for the code by its
+unterminated prompt, so this works in any UI language, and the mail stays in the
+user's language. `FFL.status()` parses `ffl status` into an `AuthStatus` (that
+command runs with `FFL_LANGUAGE=en` because the core prints text only) and
+`FFL.logout()` clears the stored credentials.
 
 Configure sharing with a normal Java builder:
 
@@ -119,6 +152,34 @@ var result = Ffl.download(
 System.out.println(result.outputPath());
 System.out.println(result.transferMode());
 ```
+
+## Android
+
+The same classes run inside an Android app (minSdk 26, no core library desugaring):
+the Java 9-11 helpers the library uses are on D8's backport list and records are
+desugared. The app ships the core itself as `jniLibs/<abi>/libffl.so` (the APE renamed)
+and describes its process environment with `APERuntime`:
+
+```java
+APERuntime runtime = APERuntime.builder()
+    .binary(Paths.get(nativeLibraryDir, "libffl.so"))
+    .launcher(Paths.get(nativeLibraryDir, "libape.so").toString()) // optional ape loader
+    .shellWrapper(false)                 // no /bin/sh -c in an app sandbox
+    .workingDirectory(filesDir.toPath())
+    .environment("TMPDIR", tmpDir)
+    .environment(FFLEnvironment.language("zh_Hant"))
+    .build();
+FFLClient client = new FFLClient(runtime);
+```
+
+Share a tree served by the app's own VFS server with `client.shareVfs("vfs://127.0.0.1:port",
+options)` and point `ShareOptions.Builder.hookEndpointProxy("http://127.0.0.1:port")` at the
+same server so the share page's `/manifest` and `/thumb` routes reach it. The hook receiver
+runs on a loopback `ServerSocket`, so the app needs no `com.sun.net.httpserver`.
+
+`scripts/build-android.ps1` (or `.sh`) builds `build/android/ffl-java-<version>-android.jar`:
+the compiled classes without the 48 MB `apebind/ffl.com`, for `implementation files(...)` in
+Gradle. `docs/apebind-upstream-notes.md` lists the generated-layer changes behind all this.
 
 ## Authentication secrets
 
@@ -211,7 +272,7 @@ python scripts/test.py real
 - `unit` tests semantic option mapping and FFL-specific output parsing without network I/O.
 - `packaging` builds a JAR, compiles a clean consumer against it, then calls
   `Ffl.version()` through the bundled `ffl.com`.
-- `real` executes the bundled FastFileLink v4.1.0 APE, verifies hidden
+- `real` executes the bundled FastFileLink v4.2.3 APE, verifies hidden
   `download`/`keygen` commands, and performs a real key generation.
 
 ## Updating FFL

@@ -4,3 +4,5 @@ build/
 *.jar
 .idea/
 .vscode/
+*.fflkey
+*.fflpub

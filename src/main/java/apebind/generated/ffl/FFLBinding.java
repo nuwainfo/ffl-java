@@ -146,6 +146,30 @@ public final class FFLBinding {
                   },
                   {
                     "flags": [
+                      "--watch"
+                    ],
+                    "primary_flag": "--watch",
+                    "api_name": "watch",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--watch-settle"
+                    ],
+                    "primary_flag": "--watch-settle",
+                    "api_name": "watch_settle",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
                       "--json"
                     ],
                     "primary_flag": "--json",
@@ -630,6 +654,19 @@ public final class FFLBinding {
                   },
                   {
                     "flags": [
+                      "--follow",
+                      "--watch"
+                    ],
+                    "primary_flag": "--follow",
+                    "api_name": "follow",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
                       "--auth-user"
                     ],
                     "primary_flag": "--auth-user",
@@ -1039,6 +1076,30 @@ public final class FFLBinding {
                   },
                   {
                     "flags": [
+                      "--watch"
+                    ],
+                    "primary_flag": "--watch",
+                    "api_name": "watch",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--watch-settle"
+                    ],
+                    "primary_flag": "--watch-settle",
+                    "api_name": "watch_settle",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
                       "--json"
                     ],
                     "primary_flag": "--json",
@@ -1388,6 +1449,417 @@ public final class FFLBinding {
                 ]
               }
             ]
+          },
+          "login": {
+            "command_path": [
+              "login"
+            ],
+            "execution": "persistent",
+            "process": {
+              "timeout_seconds": null
+            },
+            "result": {
+              "format": "command",
+              "field": null,
+              "option_flag": null,
+              "ready_timeout_seconds": null,
+              "strip": true
+            },
+            "levels": [
+              {
+                "path": [],
+                "token": null,
+                "positionals": [],
+                "options": []
+              },
+              {
+                "path": [
+                  "login"
+                ],
+                "token": "login",
+                "positionals": [],
+                "options": [
+                  {
+                    "flags": [
+                      "--email"
+                    ],
+                    "primary_flag": "--email",
+                    "api_name": "email",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--mode"
+                    ],
+                    "primary_flag": "--mode",
+                    "api_name": "mode",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--version"
+                    ],
+                    "primary_flag": "--version",
+                    "api_name": "version",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--cli"
+                    ],
+                    "primary_flag": "--cli",
+                    "api_name": "cli",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--log-level"
+                    ],
+                    "primary_flag": "--log-level",
+                    "api_name": "log_level",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--proxy"
+                    ],
+                    "primary_flag": "--proxy",
+                    "api_name": "proxy",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--hook"
+                    ],
+                    "primary_flag": "--hook",
+                    "api_name": "hook",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--enable-reporting"
+                    ],
+                    "primary_flag": "--enable-reporting",
+                    "api_name": "enable_reporting",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--pickup-code"
+                    ],
+                    "primary_flag": "--pickup-code",
+                    "api_name": "pickup_code",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--recipient-auth"
+                    ],
+                    "primary_flag": "--recipient-auth",
+                    "api_name": "recipient_auth",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  }
+                ]
+              }
+            ]
+          },
+          "logout": {
+            "command_path": [
+              "logout"
+            ],
+            "execution": "oneshot",
+            "process": {
+              "timeout_seconds": 30.0
+            },
+            "result": {
+              "format": "command",
+              "field": null,
+              "option_flag": null,
+              "ready_timeout_seconds": null,
+              "strip": true
+            },
+            "levels": [
+              {
+                "path": [],
+                "token": null,
+                "positionals": [],
+                "options": []
+              },
+              {
+                "path": [
+                  "logout"
+                ],
+                "token": "logout",
+                "positionals": [],
+                "options": [
+                  {
+                    "flags": [
+                      "--version"
+                    ],
+                    "primary_flag": "--version",
+                    "api_name": "version",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--cli"
+                    ],
+                    "primary_flag": "--cli",
+                    "api_name": "cli",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--log-level"
+                    ],
+                    "primary_flag": "--log-level",
+                    "api_name": "log_level",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--proxy"
+                    ],
+                    "primary_flag": "--proxy",
+                    "api_name": "proxy",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--hook"
+                    ],
+                    "primary_flag": "--hook",
+                    "api_name": "hook",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--enable-reporting"
+                    ],
+                    "primary_flag": "--enable-reporting",
+                    "api_name": "enable_reporting",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--pickup-code"
+                    ],
+                    "primary_flag": "--pickup-code",
+                    "api_name": "pickup_code",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--recipient-auth"
+                    ],
+                    "primary_flag": "--recipient-auth",
+                    "api_name": "recipient_auth",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  }
+                ]
+              }
+            ]
+          },
+          "status": {
+            "command_path": [
+              "status"
+            ],
+            "execution": "oneshot",
+            "process": {
+              "timeout_seconds": 30.0
+            },
+            "result": {
+              "format": "text",
+              "field": null,
+              "option_flag": null,
+              "ready_timeout_seconds": null,
+              "strip": true
+            },
+            "levels": [
+              {
+                "path": [],
+                "token": null,
+                "positionals": [],
+                "options": []
+              },
+              {
+                "path": [
+                  "status"
+                ],
+                "token": "status",
+                "positionals": [],
+                "options": [
+                  {
+                    "flags": [
+                      "--version"
+                    ],
+                    "primary_flag": "--version",
+                    "api_name": "version",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--cli"
+                    ],
+                    "primary_flag": "--cli",
+                    "api_name": "cli",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--log-level"
+                    ],
+                    "primary_flag": "--log-level",
+                    "api_name": "log_level",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--proxy"
+                    ],
+                    "primary_flag": "--proxy",
+                    "api_name": "proxy",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--hook"
+                    ],
+                    "primary_flag": "--hook",
+                    "api_name": "hook",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--enable-reporting"
+                    ],
+                    "primary_flag": "--enable-reporting",
+                    "api_name": "enable_reporting",
+                    "boolean": true,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--pickup-code"
+                    ],
+                    "primary_flag": "--pickup-code",
+                    "api_name": "pickup_code",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  },
+                  {
+                    "flags": [
+                      "--recipient-auth"
+                    ],
+                    "primary_flag": "--recipient-auth",
+                    "api_name": "recipient_auth",
+                    "boolean": false,
+                    "required": false,
+                    "multiple": false,
+                    "value_optional": false,
+                    "runtime_owned": false
+                  }
+                ]
+              }
+            ]
           }
         }
         """;
@@ -1402,38 +1874,81 @@ public final class FFLBinding {
           ]
         }
         """;
-    private static final APEClient CLIENT = new APEClient(
-        BinaryResource.resolve("ffl.com"),
-        APEClient.parseObject(OPERATIONS_JSON),
-        APEClient.parseObject(RUNTIME_JSON)
-    );
+    private static final String BINARY_NAME = "ffl.com";
+    private static volatile FFLBinding defaultBinding;
+    private final APEClient client;
 
-    private FFLBinding() {}
+    private FFLBinding(APEClient client) {
+        this.client = client;
+    }
 
-    public static ProcessSession share(ShareParameters parameters) {
+    /** The binding backed by {@link APERuntime#defaults()}, created on first use. */
+    public static FFLBinding defaults() {
+        FFLBinding binding = defaultBinding;
+        if (binding == null) {
+            synchronized (FFLBinding.class) {
+                binding = defaultBinding;
+                if (binding == null) {
+                    binding = create(APERuntime.defaults());
+                    defaultBinding = binding;
+                }
+            }
+        }
+
+        return binding;
+    }
+
+    /** A binding that launches the APE as described by {@code runtime}. */
+    public static FFLBinding create(APERuntime runtime) {
+        Objects.requireNonNull(runtime, "runtime");
+        return new FFLBinding(new APEClient(
+            BINARY_NAME,
+            runtime,
+            APEClient.parseObject(OPERATIONS_JSON),
+            APEClient.parseObject(RUNTIME_JSON)
+        ));
+    }
+
+    public APERuntime runtime() {
+        return client.runtime();
+    }
+
+    public ProcessSession share(ShareParameters parameters) {
         Objects.requireNonNull(parameters, "parameters");
-        return (ProcessSession) CLIENT.invoke(
+        return (ProcessSession) client.invoke(
             "share",
             parameters.toValues()
         );
     }
 
-    public static ProcessSession share(
+    public ProcessSession share(
         ShareParameters parameters,
         InputStream stdinSource
     ) {
         Objects.requireNonNull(parameters, "parameters");
         Objects.requireNonNull(stdinSource, "stdinSource");
-        return (ProcessSession) CLIENT.invoke(
+        return (ProcessSession) client.invoke(
             "share",
             parameters.toValues(),
             stdinSource
         );
     }
 
-    public static final class ShareParameters {
+    public ProcessSession share(
+        ShareParameters parameters,
+        boolean captureStdout
+    ) {
+        Objects.requireNonNull(parameters, "parameters");
+        return (ProcessSession) client.invoke(
+            "share",
+            parameters.toValues(),
+            null,
+            captureStdout
+        );
+    }
 
-        private final List<Path> paths;
+    public static final class ShareParameters {
+        private final List<String> paths;
         private final Boolean version;
         private final Boolean cli;
         private final String logLevel;
@@ -1442,6 +1957,8 @@ public final class FFLBinding {
         private final Boolean enableReporting;
         private final String name;
         private final String exclude;
+        private final Boolean watch;
+        private final Long watchSettle;
         private final OptionalValue<String> upload;
         private final Boolean resume;
         private final Long pause;
@@ -1472,7 +1989,6 @@ public final class FFLBinding {
         private final String preferredTunnel;
 
         private ShareParameters(Builder builder) {
-
             this.paths = builder.paths;
             this.version = builder.version;
             this.cli = builder.cli;
@@ -1482,6 +1998,8 @@ public final class FFLBinding {
             this.enableReporting = builder.enableReporting;
             this.name = builder.name;
             this.exclude = builder.exclude;
+            this.watch = builder.watch;
+            this.watchSettle = builder.watchSettle;
             this.upload = builder.upload;
             this.resume = builder.resume;
             this.pause = builder.pause;
@@ -1510,7 +2028,6 @@ public final class FFLBinding {
             this.receipt = builder.receipt;
             this.receiptConfirm = builder.receiptConfirm;
             this.preferredTunnel = builder.preferredTunnel;
-
         }
 
         public static Builder builder() {
@@ -1529,6 +2046,8 @@ public final class FFLBinding {
             values.put("enable_reporting", enableReporting);
             values.put("name", name);
             values.put("exclude", exclude);
+            values.put("watch", watch);
+            values.put("watch_settle", watchSettle);
             values.put("upload", upload);
             values.put("resume", resume);
             values.put("pause", pause);
@@ -1562,8 +2081,7 @@ public final class FFLBinding {
         }
 
         public static final class Builder {
-
-            private List<Path> paths;
+            private List<String> paths;
             private Boolean version;
             private Boolean cli;
             private String logLevel;
@@ -1572,9 +2090,9 @@ public final class FFLBinding {
             private Boolean enableReporting;
             private String name;
             private String exclude;
-
+            private Boolean watch;
+            private Long watchSettle;
             private OptionalValue<String> upload = OptionalValue.absent();
-
             private Boolean resume;
             private Long pause;
             private Boolean yes;
@@ -1592,72 +2110,66 @@ public final class FFLBinding {
             private Boolean forceRelay;
             private Boolean e2ee;
             private Boolean invite;
-
             private OptionalValue<Path> qr = OptionalValue.absent();
-
             private Boolean disableClipboard;
             private Boolean vfs;
             private String stdinCache;
             private Boolean background;
             private Boolean foreground;
             private String alias;
-
             private OptionalValue<String> receipt = OptionalValue.absent();
-
             private OptionalValue<String> receiptConfirm = OptionalValue.absent();
-
             private String preferredTunnel;
 
-            public Builder paths(Path value) {
+            public Builder paths(String value) {
                 this.paths = List.of(value);
                 return this;
             }
 
-            public Builder paths(Collection<? extends Path> values) {
+            public Builder paths(Collection<? extends String> values) {
                 this.paths = List.copyOf(values);
                 return this;
             }
-
             public Builder version(Boolean value) {
                 this.version = value;
                 return this;
             }
-
             public Builder cli(Boolean value) {
                 this.cli = value;
                 return this;
             }
-
             public Builder logLevel(String value) {
                 this.logLevel = value;
                 return this;
             }
-
             public Builder proxy(String value) {
                 this.proxy = value;
                 return this;
             }
-
             public Builder hook(String value) {
                 this.hook = value;
                 return this;
             }
-
             public Builder enableReporting(Boolean value) {
                 this.enableReporting = value;
                 return this;
             }
-
             public Builder name(String value) {
                 this.name = value;
                 return this;
             }
-
             public Builder exclude(String value) {
                 this.exclude = value;
                 return this;
             }
-
+            public Builder watch(Boolean value) {
+                this.watch = value;
+                return this;
+            }
+            public Builder watchSettle(Long value) {
+                this.watchSettle = value;
+                return this;
+            }
             public Builder upload() {
                 this.upload = OptionalValue.flag();
                 return this;
@@ -1667,92 +2179,74 @@ public final class FFLBinding {
                 this.upload = OptionalValue.value(value);
                 return this;
             }
-
             public Builder resume(Boolean value) {
                 this.resume = value;
                 return this;
             }
-
             public Builder pause(Long value) {
                 this.pause = value;
                 return this;
             }
-
             public Builder yes(Boolean value) {
                 this.yes = value;
                 return this;
             }
-
             public Builder legacyLink(String value) {
                 this.legacyLink = value;
                 return this;
             }
-
             public Builder maxDownloads(Long value) {
                 this.maxDownloads = value;
                 return this;
             }
-
             public Builder timeout(Long value) {
                 this.timeout = value;
                 return this;
             }
-
             public Builder port(Long value) {
                 this.port = value;
                 return this;
             }
-
             public Builder authUser(String value) {
                 this.authUser = value;
                 return this;
             }
-
             public Builder authPassword(String value) {
                 this.authPassword = value;
                 return this;
             }
-
             public Builder recipientAuth(String value) {
                 this.recipientAuth = value;
                 return this;
             }
-
             public Builder pickupCode(String value) {
                 this.pickupCode = value;
                 return this;
             }
-
             public Builder recipientPublicKey(Path value) {
                 this.recipientPublicKey = value;
                 return this;
             }
-
             public Builder recipientEmail(String value) {
                 this.recipientEmail = value;
                 return this;
             }
-
             public Builder recipientOtpApiBase(String value) {
                 this.recipientOtpApiBase = value;
                 return this;
             }
-
             public Builder forceRelay(Boolean value) {
                 this.forceRelay = value;
                 return this;
             }
-
             public Builder e2ee(Boolean value) {
                 this.e2ee = value;
                 return this;
             }
-
             public Builder invite(Boolean value) {
                 this.invite = value;
                 return this;
             }
-
             public Builder qr() {
                 this.qr = OptionalValue.flag();
                 return this;
@@ -1762,37 +2256,30 @@ public final class FFLBinding {
                 this.qr = OptionalValue.value(value);
                 return this;
             }
-
             public Builder disableClipboard(Boolean value) {
                 this.disableClipboard = value;
                 return this;
             }
-
             public Builder vfs(Boolean value) {
                 this.vfs = value;
                 return this;
             }
-
             public Builder stdinCache(String value) {
                 this.stdinCache = value;
                 return this;
             }
-
             public Builder background(Boolean value) {
                 this.background = value;
                 return this;
             }
-
             public Builder foreground(Boolean value) {
                 this.foreground = value;
                 return this;
             }
-
             public Builder alias(String value) {
                 this.alias = value;
                 return this;
             }
-
             public Builder receipt() {
                 this.receipt = OptionalValue.flag();
                 return this;
@@ -1802,7 +2289,6 @@ public final class FFLBinding {
                 this.receipt = OptionalValue.value(value);
                 return this;
             }
-
             public Builder receiptConfirm() {
                 this.receiptConfirm = OptionalValue.flag();
                 return this;
@@ -1812,7 +2298,6 @@ public final class FFLBinding {
                 this.receiptConfirm = OptionalValue.value(value);
                 return this;
             }
-
             public Builder preferredTunnel(String value) {
                 this.preferredTunnel = value;
                 return this;
@@ -1824,20 +2309,33 @@ public final class FFLBinding {
         }
     }
 
-    public static ProcessSession download(DownloadParameters parameters) {
+    public ProcessSession download(DownloadParameters parameters) {
         Objects.requireNonNull(parameters, "parameters");
-        return (ProcessSession) CLIENT.invoke(
+        return (ProcessSession) client.invoke(
             "download",
             parameters.toValues()
         );
     }
 
-    public static ProcessSession download(
+    public ProcessSession download(
+        DownloadParameters parameters,
+        InputStream stdinSource
+    ) {
+        Objects.requireNonNull(parameters, "parameters");
+        Objects.requireNonNull(stdinSource, "stdinSource");
+        return (ProcessSession) client.invoke(
+            "download",
+            parameters.toValues(),
+            stdinSource
+        );
+    }
+
+    public ProcessSession download(
         DownloadParameters parameters,
         boolean captureStdout
     ) {
         Objects.requireNonNull(parameters, "parameters");
-        return (ProcessSession) CLIENT.invoke(
+        return (ProcessSession) client.invoke(
             "download",
             parameters.toValues(),
             null,
@@ -1846,7 +2344,6 @@ public final class FFLBinding {
     }
 
     public static final class DownloadParameters {
-
         private final String url;
         private final Boolean version;
         private final Boolean cli;
@@ -1856,6 +2353,7 @@ public final class FFLBinding {
         private final Boolean enableReporting;
         private final Path outputPath;
         private final Boolean resume;
+        private final Boolean follow;
         private final String authUser;
         private final String authPassword;
         private final String recipientAuth;
@@ -1864,7 +2362,6 @@ public final class FFLBinding {
         private final Boolean stdout;
 
         private DownloadParameters(Builder builder) {
-
             this.url = builder.url;
             this.version = builder.version;
             this.cli = builder.cli;
@@ -1874,13 +2371,13 @@ public final class FFLBinding {
             this.enableReporting = builder.enableReporting;
             this.outputPath = builder.outputPath;
             this.resume = builder.resume;
+            this.follow = builder.follow;
             this.authUser = builder.authUser;
             this.authPassword = builder.authPassword;
             this.recipientAuth = builder.recipientAuth;
             this.pickupCode = builder.pickupCode;
             this.recipientPrivateKey = builder.recipientPrivateKey;
             this.stdout = builder.stdout;
-
         }
 
         public static Builder builder() {
@@ -1899,6 +2396,7 @@ public final class FFLBinding {
             values.put("enable_reporting", enableReporting);
             values.put("output_path", outputPath);
             values.put("resume", resume);
+            values.put("follow", follow);
             values.put("auth_user", authUser);
             values.put("auth_password", authPassword);
             values.put("recipient_auth", recipientAuth);
@@ -1910,7 +2408,6 @@ public final class FFLBinding {
         }
 
         public static final class Builder {
-
             private String url;
             private Boolean version;
             private Boolean cli;
@@ -1920,6 +2417,7 @@ public final class FFLBinding {
             private Boolean enableReporting;
             private Path outputPath;
             private Boolean resume;
+            private Boolean follow;
             private String authUser;
             private String authPassword;
             private String recipientAuth;
@@ -1931,72 +2429,62 @@ public final class FFLBinding {
                 this.url = value;
                 return this;
             }
-
             public Builder version(Boolean value) {
                 this.version = value;
                 return this;
             }
-
             public Builder cli(Boolean value) {
                 this.cli = value;
                 return this;
             }
-
             public Builder logLevel(String value) {
                 this.logLevel = value;
                 return this;
             }
-
             public Builder proxy(String value) {
                 this.proxy = value;
                 return this;
             }
-
             public Builder hook(String value) {
                 this.hook = value;
                 return this;
             }
-
             public Builder enableReporting(Boolean value) {
                 this.enableReporting = value;
                 return this;
             }
-
             public Builder outputPath(Path value) {
                 this.outputPath = value;
                 return this;
             }
-
             public Builder resume(Boolean value) {
                 this.resume = value;
                 return this;
             }
-
+            public Builder follow(Boolean value) {
+                this.follow = value;
+                return this;
+            }
             public Builder authUser(String value) {
                 this.authUser = value;
                 return this;
             }
-
             public Builder authPassword(String value) {
                 this.authPassword = value;
                 return this;
             }
-
             public Builder recipientAuth(String value) {
                 this.recipientAuth = value;
                 return this;
             }
-
             public Builder pickupCode(String value) {
                 this.pickupCode = value;
                 return this;
             }
-
             public Builder recipientPrivateKey(Path value) {
                 this.recipientPrivateKey = value;
                 return this;
             }
-
             public Builder stdout(Boolean value) {
                 this.stdout = value;
                 return this;
@@ -2008,16 +2496,15 @@ public final class FFLBinding {
         }
     }
 
-    public static APEProcessResult keygen(KeygenParameters parameters) {
+    public APEProcessResult keygen(KeygenParameters parameters) {
         Objects.requireNonNull(parameters, "parameters");
-        return (APEProcessResult) CLIENT.invoke(
+        return (APEProcessResult) client.invoke(
             "keygen",
             parameters.toValues()
         );
     }
 
     public static final class KeygenParameters {
-
         private final Boolean version;
         private final Boolean cli;
         private final String logLevel;
@@ -2034,7 +2521,6 @@ public final class FFLBinding {
         private final String recipientOtpApiBase;
 
         private KeygenParameters(Builder builder) {
-
             this.version = builder.version;
             this.cli = builder.cli;
             this.logLevel = builder.logLevel;
@@ -2049,7 +2535,6 @@ public final class FFLBinding {
             this.recipientPublicKey = builder.recipientPublicKey;
             this.recipientEmail = builder.recipientEmail;
             this.recipientOtpApiBase = builder.recipientOtpApiBase;
-
         }
 
         public static Builder builder() {
@@ -2078,7 +2563,6 @@ public final class FFLBinding {
         }
 
         public static final class Builder {
-
             private Boolean version;
             private Boolean cli;
             private String logLevel;
@@ -2098,67 +2582,54 @@ public final class FFLBinding {
                 this.version = value;
                 return this;
             }
-
             public Builder cli(Boolean value) {
                 this.cli = value;
                 return this;
             }
-
             public Builder logLevel(String value) {
                 this.logLevel = value;
                 return this;
             }
-
             public Builder proxy(String value) {
                 this.proxy = value;
                 return this;
             }
-
             public Builder hook(String value) {
                 this.hook = value;
                 return this;
             }
-
             public Builder enableReporting(Boolean value) {
                 this.enableReporting = value;
                 return this;
             }
-
             public Builder name(String value) {
                 this.name = value;
                 return this;
             }
-
             public Builder share(Boolean value) {
                 this.share = value;
                 return this;
             }
-
             public Builder json(Path value) {
                 this.json = value;
                 return this;
             }
-
             public Builder recipientAuth(String value) {
                 this.recipientAuth = value;
                 return this;
             }
-
             public Builder pickupCode(String value) {
                 this.pickupCode = value;
                 return this;
             }
-
             public Builder recipientPublicKey(Path value) {
                 this.recipientPublicKey = value;
                 return this;
             }
-
             public Builder recipientEmail(String value) {
                 this.recipientEmail = value;
                 return this;
             }
-
             public Builder recipientOtpApiBase(String value) {
                 this.recipientOtpApiBase = value;
                 return this;
@@ -2170,17 +2641,16 @@ public final class FFLBinding {
         }
     }
 
-    public static String version(VersionParameters parameters) {
+    public String version(VersionParameters parameters) {
         Objects.requireNonNull(parameters, "parameters");
-        return (String) CLIENT.invoke(
+        return (String) client.invoke(
             "version",
             parameters.toValues()
         );
     }
 
     public static final class VersionParameters {
-
-        private final List<Path> paths;
+        private final List<String> paths;
         private final Boolean version;
         private final Boolean cli;
         private final String logLevel;
@@ -2189,6 +2659,8 @@ public final class FFLBinding {
         private final Boolean enableReporting;
         private final String name;
         private final String exclude;
+        private final Boolean watch;
+        private final Long watchSettle;
         private final Path json;
         private final OptionalValue<String> upload;
         private final Boolean resume;
@@ -2220,7 +2692,6 @@ public final class FFLBinding {
         private final String preferredTunnel;
 
         private VersionParameters(Builder builder) {
-
             this.paths = builder.paths;
             this.version = builder.version;
             this.cli = builder.cli;
@@ -2230,6 +2701,8 @@ public final class FFLBinding {
             this.enableReporting = builder.enableReporting;
             this.name = builder.name;
             this.exclude = builder.exclude;
+            this.watch = builder.watch;
+            this.watchSettle = builder.watchSettle;
             this.json = builder.json;
             this.upload = builder.upload;
             this.resume = builder.resume;
@@ -2259,7 +2732,6 @@ public final class FFLBinding {
             this.receipt = builder.receipt;
             this.receiptConfirm = builder.receiptConfirm;
             this.preferredTunnel = builder.preferredTunnel;
-
         }
 
         public static Builder builder() {
@@ -2278,6 +2750,8 @@ public final class FFLBinding {
             values.put("enable_reporting", enableReporting);
             values.put("name", name);
             values.put("exclude", exclude);
+            values.put("watch", watch);
+            values.put("watch_settle", watchSettle);
             values.put("json", json);
             values.put("upload", upload);
             values.put("resume", resume);
@@ -2312,8 +2786,7 @@ public final class FFLBinding {
         }
 
         public static final class Builder {
-
-            private List<Path> paths;
+            private List<String> paths;
             private Boolean version;
             private Boolean cli;
             private String logLevel;
@@ -2322,10 +2795,10 @@ public final class FFLBinding {
             private Boolean enableReporting;
             private String name;
             private String exclude;
+            private Boolean watch;
+            private Long watchSettle;
             private Path json;
-
             private OptionalValue<String> upload = OptionalValue.absent();
-
             private Boolean resume;
             private Long pause;
             private Boolean yes;
@@ -2343,77 +2816,70 @@ public final class FFLBinding {
             private Boolean forceRelay;
             private Boolean e2ee;
             private Boolean invite;
-
             private OptionalValue<Path> qr = OptionalValue.absent();
-
             private Boolean disableClipboard;
             private Boolean vfs;
             private String stdinCache;
             private Boolean background;
             private Boolean foreground;
             private String alias;
-
             private OptionalValue<String> receipt = OptionalValue.absent();
-
             private OptionalValue<String> receiptConfirm = OptionalValue.absent();
-
             private String preferredTunnel;
 
-            public Builder paths(Path value) {
+            public Builder paths(String value) {
                 this.paths = List.of(value);
                 return this;
             }
 
-            public Builder paths(Collection<? extends Path> values) {
+            public Builder paths(Collection<? extends String> values) {
                 this.paths = List.copyOf(values);
                 return this;
             }
-
             public Builder version(Boolean value) {
                 this.version = value;
                 return this;
             }
-
             public Builder cli(Boolean value) {
                 this.cli = value;
                 return this;
             }
-
             public Builder logLevel(String value) {
                 this.logLevel = value;
                 return this;
             }
-
             public Builder proxy(String value) {
                 this.proxy = value;
                 return this;
             }
-
             public Builder hook(String value) {
                 this.hook = value;
                 return this;
             }
-
             public Builder enableReporting(Boolean value) {
                 this.enableReporting = value;
                 return this;
             }
-
             public Builder name(String value) {
                 this.name = value;
                 return this;
             }
-
             public Builder exclude(String value) {
                 this.exclude = value;
                 return this;
             }
-
+            public Builder watch(Boolean value) {
+                this.watch = value;
+                return this;
+            }
+            public Builder watchSettle(Long value) {
+                this.watchSettle = value;
+                return this;
+            }
             public Builder json(Path value) {
                 this.json = value;
                 return this;
             }
-
             public Builder upload() {
                 this.upload = OptionalValue.flag();
                 return this;
@@ -2423,92 +2889,74 @@ public final class FFLBinding {
                 this.upload = OptionalValue.value(value);
                 return this;
             }
-
             public Builder resume(Boolean value) {
                 this.resume = value;
                 return this;
             }
-
             public Builder pause(Long value) {
                 this.pause = value;
                 return this;
             }
-
             public Builder yes(Boolean value) {
                 this.yes = value;
                 return this;
             }
-
             public Builder legacyLink(String value) {
                 this.legacyLink = value;
                 return this;
             }
-
             public Builder maxDownloads(Long value) {
                 this.maxDownloads = value;
                 return this;
             }
-
             public Builder timeout(Long value) {
                 this.timeout = value;
                 return this;
             }
-
             public Builder port(Long value) {
                 this.port = value;
                 return this;
             }
-
             public Builder authUser(String value) {
                 this.authUser = value;
                 return this;
             }
-
             public Builder authPassword(String value) {
                 this.authPassword = value;
                 return this;
             }
-
             public Builder recipientAuth(String value) {
                 this.recipientAuth = value;
                 return this;
             }
-
             public Builder pickupCode(String value) {
                 this.pickupCode = value;
                 return this;
             }
-
             public Builder recipientPublicKey(Path value) {
                 this.recipientPublicKey = value;
                 return this;
             }
-
             public Builder recipientEmail(String value) {
                 this.recipientEmail = value;
                 return this;
             }
-
             public Builder recipientOtpApiBase(String value) {
                 this.recipientOtpApiBase = value;
                 return this;
             }
-
             public Builder forceRelay(Boolean value) {
                 this.forceRelay = value;
                 return this;
             }
-
             public Builder e2ee(Boolean value) {
                 this.e2ee = value;
                 return this;
             }
-
             public Builder invite(Boolean value) {
                 this.invite = value;
                 return this;
             }
-
             public Builder qr() {
                 this.qr = OptionalValue.flag();
                 return this;
@@ -2518,37 +2966,30 @@ public final class FFLBinding {
                 this.qr = OptionalValue.value(value);
                 return this;
             }
-
             public Builder disableClipboard(Boolean value) {
                 this.disableClipboard = value;
                 return this;
             }
-
             public Builder vfs(Boolean value) {
                 this.vfs = value;
                 return this;
             }
-
             public Builder stdinCache(String value) {
                 this.stdinCache = value;
                 return this;
             }
-
             public Builder background(Boolean value) {
                 this.background = value;
                 return this;
             }
-
             public Builder foreground(Boolean value) {
                 this.foreground = value;
                 return this;
             }
-
             public Builder alias(String value) {
                 this.alias = value;
                 return this;
             }
-
             public Builder receipt() {
                 this.receipt = OptionalValue.flag();
                 return this;
@@ -2558,7 +2999,6 @@ public final class FFLBinding {
                 this.receipt = OptionalValue.value(value);
                 return this;
             }
-
             public Builder receiptConfirm() {
                 this.receiptConfirm = OptionalValue.flag();
                 return this;
@@ -2568,7 +3008,6 @@ public final class FFLBinding {
                 this.receiptConfirm = OptionalValue.value(value);
                 return this;
             }
-
             public Builder preferredTunnel(String value) {
                 this.preferredTunnel = value;
                 return this;
@@ -2580,15 +3019,347 @@ public final class FFLBinding {
         }
     }
 
-    public static APEProcessResult raw(List<?> arguments) {
-        return CLIENT.raw(arguments);
+    public ProcessSession login(LoginParameters parameters) {
+        Objects.requireNonNull(parameters, "parameters");
+        return (ProcessSession) client.invoke(
+            "login",
+            parameters.toValues()
+        );
     }
 
-    public static APEProcessResult raw(List<?> arguments, double timeoutSeconds) {
-        return CLIENT.raw(arguments, timeoutSeconds);
+    public ProcessSession login(
+        LoginParameters parameters,
+        InputStream stdinSource
+    ) {
+        Objects.requireNonNull(parameters, "parameters");
+        Objects.requireNonNull(stdinSource, "stdinSource");
+        return (ProcessSession) client.invoke(
+            "login",
+            parameters.toValues(),
+            stdinSource
+        );
     }
 
-    public static ProcessSession rawPersistent(List<?> arguments) {
-        return CLIENT.rawPersistent(arguments);
+    public ProcessSession login(
+        LoginParameters parameters,
+        boolean captureStdout
+    ) {
+        Objects.requireNonNull(parameters, "parameters");
+        return (ProcessSession) client.invoke(
+            "login",
+            parameters.toValues(),
+            null,
+            captureStdout
+        );
+    }
+
+    public static final class LoginParameters {
+        private final String email;
+        private final String mode;
+        private final Boolean version;
+        private final Boolean cli;
+        private final String logLevel;
+        private final String proxy;
+        private final String hook;
+        private final Boolean enableReporting;
+        private final String pickupCode;
+        private final String recipientAuth;
+
+        private LoginParameters(Builder builder) {
+            this.email = builder.email;
+            this.mode = builder.mode;
+            this.version = builder.version;
+            this.cli = builder.cli;
+            this.logLevel = builder.logLevel;
+            this.proxy = builder.proxy;
+            this.hook = builder.hook;
+            this.enableReporting = builder.enableReporting;
+            this.pickupCode = builder.pickupCode;
+            this.recipientAuth = builder.recipientAuth;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public Map<String, Object> toValues() {
+            Map<String, Object> values = new LinkedHashMap<>();
+
+            values.put("email", email);
+            values.put("mode", mode);
+            values.put("version", version);
+            values.put("cli", cli);
+            values.put("log_level", logLevel);
+            values.put("proxy", proxy);
+            values.put("hook", hook);
+            values.put("enable_reporting", enableReporting);
+            values.put("pickup_code", pickupCode);
+            values.put("recipient_auth", recipientAuth);
+
+            return values;
+        }
+
+        public static final class Builder {
+            private String email;
+            private String mode;
+            private Boolean version;
+            private Boolean cli;
+            private String logLevel;
+            private String proxy;
+            private String hook;
+            private Boolean enableReporting;
+            private String pickupCode;
+            private String recipientAuth;
+
+            public Builder email(String value) {
+                this.email = value;
+                return this;
+            }
+            public Builder mode(String value) {
+                this.mode = value;
+                return this;
+            }
+            public Builder version(Boolean value) {
+                this.version = value;
+                return this;
+            }
+            public Builder cli(Boolean value) {
+                this.cli = value;
+                return this;
+            }
+            public Builder logLevel(String value) {
+                this.logLevel = value;
+                return this;
+            }
+            public Builder proxy(String value) {
+                this.proxy = value;
+                return this;
+            }
+            public Builder hook(String value) {
+                this.hook = value;
+                return this;
+            }
+            public Builder enableReporting(Boolean value) {
+                this.enableReporting = value;
+                return this;
+            }
+            public Builder pickupCode(String value) {
+                this.pickupCode = value;
+                return this;
+            }
+            public Builder recipientAuth(String value) {
+                this.recipientAuth = value;
+                return this;
+            }
+
+            public LoginParameters build() {
+                return new LoginParameters(this);
+            }
+        }
+    }
+
+    public APEProcessResult logout(LogoutParameters parameters) {
+        Objects.requireNonNull(parameters, "parameters");
+        return (APEProcessResult) client.invoke(
+            "logout",
+            parameters.toValues()
+        );
+    }
+
+    public static final class LogoutParameters {
+        private final Boolean version;
+        private final Boolean cli;
+        private final String logLevel;
+        private final String proxy;
+        private final String hook;
+        private final Boolean enableReporting;
+        private final String pickupCode;
+        private final String recipientAuth;
+
+        private LogoutParameters(Builder builder) {
+            this.version = builder.version;
+            this.cli = builder.cli;
+            this.logLevel = builder.logLevel;
+            this.proxy = builder.proxy;
+            this.hook = builder.hook;
+            this.enableReporting = builder.enableReporting;
+            this.pickupCode = builder.pickupCode;
+            this.recipientAuth = builder.recipientAuth;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public Map<String, Object> toValues() {
+            Map<String, Object> values = new LinkedHashMap<>();
+
+            values.put("version", version);
+            values.put("cli", cli);
+            values.put("log_level", logLevel);
+            values.put("proxy", proxy);
+            values.put("hook", hook);
+            values.put("enable_reporting", enableReporting);
+            values.put("pickup_code", pickupCode);
+            values.put("recipient_auth", recipientAuth);
+
+            return values;
+        }
+
+        public static final class Builder {
+            private Boolean version;
+            private Boolean cli;
+            private String logLevel;
+            private String proxy;
+            private String hook;
+            private Boolean enableReporting;
+            private String pickupCode;
+            private String recipientAuth;
+
+            public Builder version(Boolean value) {
+                this.version = value;
+                return this;
+            }
+            public Builder cli(Boolean value) {
+                this.cli = value;
+                return this;
+            }
+            public Builder logLevel(String value) {
+                this.logLevel = value;
+                return this;
+            }
+            public Builder proxy(String value) {
+                this.proxy = value;
+                return this;
+            }
+            public Builder hook(String value) {
+                this.hook = value;
+                return this;
+            }
+            public Builder enableReporting(Boolean value) {
+                this.enableReporting = value;
+                return this;
+            }
+            public Builder pickupCode(String value) {
+                this.pickupCode = value;
+                return this;
+            }
+            public Builder recipientAuth(String value) {
+                this.recipientAuth = value;
+                return this;
+            }
+
+            public LogoutParameters build() {
+                return new LogoutParameters(this);
+            }
+        }
+    }
+
+    public String status(StatusParameters parameters) {
+        Objects.requireNonNull(parameters, "parameters");
+        return (String) client.invoke(
+            "status",
+            parameters.toValues()
+        );
+    }
+
+    public static final class StatusParameters {
+        private final Boolean version;
+        private final Boolean cli;
+        private final String logLevel;
+        private final String proxy;
+        private final String hook;
+        private final Boolean enableReporting;
+        private final String pickupCode;
+        private final String recipientAuth;
+
+        private StatusParameters(Builder builder) {
+            this.version = builder.version;
+            this.cli = builder.cli;
+            this.logLevel = builder.logLevel;
+            this.proxy = builder.proxy;
+            this.hook = builder.hook;
+            this.enableReporting = builder.enableReporting;
+            this.pickupCode = builder.pickupCode;
+            this.recipientAuth = builder.recipientAuth;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public Map<String, Object> toValues() {
+            Map<String, Object> values = new LinkedHashMap<>();
+
+            values.put("version", version);
+            values.put("cli", cli);
+            values.put("log_level", logLevel);
+            values.put("proxy", proxy);
+            values.put("hook", hook);
+            values.put("enable_reporting", enableReporting);
+            values.put("pickup_code", pickupCode);
+            values.put("recipient_auth", recipientAuth);
+
+            return values;
+        }
+
+        public static final class Builder {
+            private Boolean version;
+            private Boolean cli;
+            private String logLevel;
+            private String proxy;
+            private String hook;
+            private Boolean enableReporting;
+            private String pickupCode;
+            private String recipientAuth;
+
+            public Builder version(Boolean value) {
+                this.version = value;
+                return this;
+            }
+            public Builder cli(Boolean value) {
+                this.cli = value;
+                return this;
+            }
+            public Builder logLevel(String value) {
+                this.logLevel = value;
+                return this;
+            }
+            public Builder proxy(String value) {
+                this.proxy = value;
+                return this;
+            }
+            public Builder hook(String value) {
+                this.hook = value;
+                return this;
+            }
+            public Builder enableReporting(Boolean value) {
+                this.enableReporting = value;
+                return this;
+            }
+            public Builder pickupCode(String value) {
+                this.pickupCode = value;
+                return this;
+            }
+            public Builder recipientAuth(String value) {
+                this.recipientAuth = value;
+                return this;
+            }
+
+            public StatusParameters build() {
+                return new StatusParameters(this);
+            }
+        }
+    }
+    public APEProcessResult raw(List<?> arguments) {
+        return client.raw(arguments);
+    }
+
+    public APEProcessResult raw(List<?> arguments, double timeoutSeconds) {
+        return client.raw(arguments, timeoutSeconds);
+    }
+
+    public ProcessSession rawPersistent(List<?> arguments) {
+        return client.rawPersistent(arguments);
     }
 }

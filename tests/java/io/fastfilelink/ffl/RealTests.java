@@ -20,13 +20,13 @@ public final class RealTests {
     }
 
     private static void testHiddenCommands() {
-        var download = FFLBinding.download(
+        var download = FFLBinding.defaults().download(
             FFLBinding.DownloadParameters.builder()
                 .url("https://example.invalid")
                 .version(true)
                 .build()
         );
-        var keygen = FFLBinding.keygen(
+        var keygen = FFLBinding.defaults().keygen(
             FFLBinding.KeygenParameters.builder()
                 .version(true)
                 .build()

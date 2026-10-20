@@ -4,6 +4,7 @@ import apebind.generated.ffl.APEProcessResult;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,8 +47,8 @@ final class FFLResultParser {
             throw new FFLOutputException("FFL keygen output did not contain both key paths");
         }
 
-        Path privateKey = resolve(cwd, Path.of(cleanKeyPath(privateMatch.group(1))));
-        Path publicKey = resolve(cwd, Path.of(cleanKeyPath(publicMatch.group(1))));
+        Path privateKey = resolve(cwd, Paths.get(cleanKeyPath(privateMatch.group(1))));
+        Path publicKey = resolve(cwd, Paths.get(cleanKeyPath(publicMatch.group(1))));
         if (!Files.isRegularFile(privateKey) || !Files.isRegularFile(publicKey)) {
             throw new FFLOutputException("FFL keygen reported key files that do not exist");
         }
@@ -88,11 +89,11 @@ final class FFLResultParser {
     private static Path detectDownloadPath(String output, Path cwd) {
         Matcher downloaded = DOWNLOADED_PATTERN.matcher(output);
         if (downloaded.find()) {
-            return resolve(cwd, Path.of(downloaded.group(1).trim()));
+            return resolve(cwd, Paths.get(downloaded.group(1).trim()));
         }
         Matcher downloading = DOWNLOADING_PATTERN.matcher(output);
         if (downloading.find()) {
-            return resolve(cwd, Path.of(downloading.group(1).trim()));
+            return resolve(cwd, Paths.get(downloading.group(1).trim()));
         }
         return null;
     }

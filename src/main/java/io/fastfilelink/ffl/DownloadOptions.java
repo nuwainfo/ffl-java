@@ -5,6 +5,7 @@ import java.nio.file.Path;
 public final class DownloadOptions {
     private final Path outputPath;
     private final boolean resume;
+    private final boolean follow;
     private final String authUser;
     private final String authPassword;
     private final String proxy;
@@ -18,6 +19,7 @@ public final class DownloadOptions {
     private DownloadOptions(Builder builder) {
         outputPath = builder.outputPath;
         resume = builder.resume;
+        follow = builder.follow;
         authUser = builder.authUser;
         authPassword = builder.authPassword;
         proxy = builder.proxy;
@@ -39,6 +41,7 @@ public final class DownloadOptions {
 
     Path outputPath() { return outputPath; }
     boolean resume() { return resume; }
+    boolean follow() { return follow; }
     String authUser() { return authUser; }
     String authPassword() { return authPassword; }
     String proxy() { return proxy; }
@@ -52,6 +55,7 @@ public final class DownloadOptions {
     public static final class Builder {
         private Path outputPath;
         private boolean resume;
+        private boolean follow;
         private String authUser;
         private String authPassword;
         private String proxy;
@@ -66,6 +70,8 @@ public final class DownloadOptions {
 
         public Builder outputPath(Path value) { outputPath = value; return this; }
         public Builder resume(boolean value) { resume = value; return this; }
+        /** Keeps watching a collection URL and downloads newly appended deliveries. */
+        public Builder follow(boolean value) { follow = value; return this; }
         public Builder authUser(String value) { authUser = value; return this; }
         public Builder authPassword(String value) { authPassword = value; return this; }
         public Builder proxy(String value) { proxy = value; return this; }

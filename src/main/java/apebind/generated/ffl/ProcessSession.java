@@ -6,10 +6,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public final class ProcessSession implements AutoCloseable {
     private final Process process;
@@ -19,6 +25,8 @@ public final class ProcessSession implements AutoCloseable {
     private final StreamCollector stderrCollector;
     private volatile boolean stoppedByClient;
     private volatile Object result;
+    private volatile Supplier<Object> pendingResult;
+    private final Object resultLock = new Object();
     private final List<Runnable> exitListeners = new java.util.ArrayList<>();
     private final AtomicBoolean exitNotified = new AtomicBoolean();
     private volatile InputStream stdinSource;
@@ -64,7 +72,7 @@ public final class ProcessSession implements AutoCloseable {
     }
 
     public long pid() {
-        return process.pid();
+        return Processes.pid(process);
     }
 
     public boolean running() {
@@ -81,6 +89,45 @@ public final class ProcessSession implements AutoCloseable {
         }
 
         return APEClient.normalizeAPEReturnCode(process.exitValue());
+    }
+
+    /**
+     * Delivers every complete stdout line (without its line ending; the final unterminated line
+     * is delivered when stdout closes). Lines collected before registration are replayed first,
+     * so no line is missed. Listeners run on the collector thread and must return quickly.
+     */
+    public ProcessSession onStdoutLine(Consumer<String> listener) {
+        Objects.requireNonNull(listener, "listener");
+        if (stdoutCollector == null) {
+            throw new IllegalStateException("stdout is streamed, not captured; read stdoutStream() instead");
+        }
+        stdoutCollector.onLine(listener);
+        return this;
+    }
+
+    /**
+     * Delivers every complete stderr line the same way {@link #onStdoutLine} delivers stdout:
+     * replayed from the start, then live on the collector thread. stderr is always captured, so
+     * this works for streamed-stdout sessions too.
+     */
+    public ProcessSession onStderrLine(Consumer<String> listener) {
+        Objects.requireNonNull(listener, "listener");
+        stderrCollector.onLine(listener);
+        return this;
+    }
+
+    /**
+     * Reports stdout text the process left unterminated for a moment, i.e. a prompt it is waiting
+     * on (an interactive {@code input()}); the text is delivered once per prompt, and a listener
+     * registered while a prompt is pending receives it immediately.
+     */
+    public ProcessSession onStdoutPrompt(Consumer<String> listener) {
+        Objects.requireNonNull(listener, "listener");
+        if (stdoutCollector == null) {
+            throw new IllegalStateException("stdout is streamed, not captured; read stdoutStream() instead");
+        }
+        stdoutCollector.onPrompt(listener);
+        return this;
     }
 
     public String stdout() {
@@ -173,6 +220,7 @@ public final class ProcessSession implements AutoCloseable {
 
                 try {
                     destination.write(buffer, 0, count);
+                    destination.flush();
                 } catch (IOException ignored) {
                     // FFL can close stdin before it exits. That EPIPE-like
                     // condition must not leak into the host application.
@@ -224,12 +272,36 @@ public final class ProcessSession implements AutoCloseable {
         return stderrCollector.text();
     }
 
+    /**
+     * The operation's decoded result. A persistent JSON-file result is awaited lazily: the first
+     * call waits for the file, up to the schema's {@code ready_timeout_seconds}, and a timeout
+     * throws {@link APETimeoutException} while the process keeps running (a later call waits
+     * again). Callers that only use hook events never pay for the wait.
+     */
     public Object result() {
-        return result;
+        if (pendingResult == null) {
+            return result;
+        }
+
+        synchronized (resultLock) {
+            Supplier<Object> pending = pendingResult;
+            if (pending == null) {
+                return result;
+            }
+
+            Object value = pending.get();
+            result = value;
+            pendingResult = null;
+            return value;
+        }
     }
 
     void setResult(Object result) {
         this.result = result;
+    }
+
+    void deferResult(Supplier<Object> supplier) {
+        pendingResult = Objects.requireNonNull(supplier, "supplier");
     }
 
     public ProcessSession onExit(Runnable listener) {
@@ -380,21 +452,7 @@ public final class ProcessSession implements AutoCloseable {
     }
 
     private void destroyProcessTree(boolean forcibly) {
-        try (var descendants = process.toHandle().descendants()) {
-            for (ProcessHandle descendant : descendants.toList()) {
-                if (forcibly) {
-                    descendant.destroyForcibly();
-                } else {
-                    descendant.destroy();
-                }
-            }
-        }
-
-        if (forcibly) {
-            process.destroyForcibly();
-        } else {
-            process.destroy();
-        }
+        Processes.destroyTree(process, forcibly);
     }
 
     private void awaitStdout(boolean ignoreReadError) {
@@ -404,7 +462,20 @@ public final class ProcessSession implements AutoCloseable {
     }
 
     private static final class StreamCollector {
+        private static final long PROMPT_QUIET_MILLIS = 300;
+        private static final ScheduledExecutorService PROMPT_CLOCK = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "apebind-stdout-prompt");
+            thread.setDaemon(true);
+            return thread;
+        });
+
         private final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        private final ByteArrayOutputStream pendingLine = new ByteArrayOutputStream();
+        private final List<String> lines = new ArrayList<>();
+        private final List<Consumer<String>> lineListeners = new ArrayList<>();
+        private final List<Consumer<String>> promptListeners = new ArrayList<>();
+        private long pendingVersion;
+        private boolean promptAnnounced;
         private final Thread thread;
         private volatile IOException error;
 
@@ -420,15 +491,107 @@ public final class ProcessSession implements AutoCloseable {
                 while (true) {
                     int count = input.read(buffer);
                     if (count < 0) {
+                        finishLines();
                         return;
                     }
 
                     synchronized (output) {
                         output.write(buffer, 0, count);
+                        pendingVersion++;
+                        promptAnnounced = false;
+                        splitLines(buffer, count);
+                        schedulePromptCheck();
                     }
                 }
             } catch (IOException caught) {
                 error = caught;
+                finishLines();
+            }
+        }
+
+        /** Registers a line listener, replaying the lines seen so far under the same lock that orders live delivery. */
+        private void onLine(Consumer<String> listener) {
+            synchronized (output) {
+                for (String line : lines) {
+                    listener.accept(line);
+                }
+                lineListeners.add(listener);
+            }
+        }
+
+        private void onPrompt(Consumer<String> listener) {
+            synchronized (output) {
+                promptListeners.add(listener);
+                if (promptAnnounced) {
+                    listener.accept(pendingText());
+                }
+            }
+        }
+
+        /** Checks the unterminated text again once nothing new arrived for PROMPT_QUIET_MILLIS. */
+        private void schedulePromptCheck() {
+            if (pendingLine.size() == 0) {
+                return;
+            }
+            long version = pendingVersion;
+            PROMPT_CLOCK.schedule(() -> announcePrompt(version), PROMPT_QUIET_MILLIS, TimeUnit.MILLISECONDS);
+        }
+
+        private void announcePrompt(long version) {
+            String prompt;
+            List<Consumer<String>> listeners;
+            synchronized (output) {
+                if (version != pendingVersion || promptAnnounced || pendingLine.size() == 0) {
+                    return;
+                }
+                promptAnnounced = true;
+                prompt = pendingText();
+                listeners = new ArrayList<>(promptListeners);
+            }
+            for (Consumer<String> listener : listeners) {
+                try {
+                    listener.accept(prompt);
+                } catch (RuntimeException ignored) {
+                    // A failing listener must not stop output collection.
+                }
+            }
+        }
+
+        private String pendingText() {
+            return new String(pendingLine.toByteArray(), StandardCharsets.UTF_8);
+        }
+
+        private void splitLines(byte[] buffer, int count) {
+            for (int index = 0; index < count; index++) {
+                byte value = buffer[index];
+                if (value == '\n') {
+                    publishLine();
+                } else {
+                    pendingLine.write(value);
+                }
+            }
+        }
+
+        private void finishLines() {
+            synchronized (output) {
+                if (pendingLine.size() > 0) {
+                    publishLine();
+                }
+            }
+        }
+
+        private void publishLine() {
+            byte[] bytes = pendingLine.toByteArray();
+            pendingLine.reset();
+            int length = bytes.length > 0 && bytes[bytes.length - 1] == '\r' ? bytes.length - 1 : bytes.length;
+            String line = new String(bytes, 0, length, StandardCharsets.UTF_8);
+            lines.add(line);
+            for (Consumer<String> listener : lineListeners) {
+                try {
+                    listener.accept(line);
+                } catch (RuntimeException ignored) {
+                    // A failing listener must not stop output collection.
+                }
             }
         }
 
@@ -451,7 +614,7 @@ public final class ProcessSession implements AutoCloseable {
 
         private String text() {
             synchronized (output) {
-                return output.toString(StandardCharsets.UTF_8);
+                return new String(output.toByteArray(), StandardCharsets.UTF_8);
             }
         }
 

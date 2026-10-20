@@ -1,3 +1,6 @@
 commands:
   - download
   - keygen
+  - login
+  - logout
+  - status

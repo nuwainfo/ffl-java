@@ -30,6 +30,26 @@ public final class FFL {
         return CLIENT.share(paths, options);
     }
 
+    public static ShareSession shareVfs(String url) {
+        return CLIENT.shareVfs(url);
+    }
+
+    public static ShareSession shareVfs(String url, ShareOptions options) {
+        return CLIENT.shareVfs(url, options);
+    }
+
+    public static LoginSession login(String email) {
+        return CLIENT.login(email);
+    }
+
+    public static AuthStatus status() {
+        return CLIENT.status();
+    }
+
+    public static boolean logout() {
+        return CLIENT.logout();
+    }
+
     public static ShareSession shareText(String text) {
         return CLIENT.shareText(text);
     }

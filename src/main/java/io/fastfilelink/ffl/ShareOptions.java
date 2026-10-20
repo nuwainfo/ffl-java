@@ -1,6 +1,11 @@
 package io.fastfilelink.ffl;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 public final class ShareOptions {
     private final String name;
@@ -34,6 +39,10 @@ public final class ShareOptions {
     private final OptionalArgument<Path> qr;
     private final String stdinCache;
     private final String logLevel;
+    private final boolean watch;
+    private final Long watchSettleSeconds;
+    private final Map<String, FFLHookResponder> responders;
+    private final String hookEndpointProxy;
 
     private ShareOptions(Builder builder) {
         name = builder.name;
@@ -67,6 +76,10 @@ public final class ShareOptions {
         qr = builder.qr;
         stdinCache = builder.stdinCache;
         logLevel = builder.logLevel;
+        watch = builder.watch;
+        watchSettleSeconds = builder.watchSettleSeconds;
+        responders = Collections.unmodifiableMap(new LinkedHashMap<>(builder.responders));
+        hookEndpointProxy = builder.hookEndpointProxy;
     }
 
     public static ShareOptions defaults() {
@@ -108,6 +121,10 @@ public final class ShareOptions {
     OptionalArgument<Path> qr() { return qr; }
     String stdinCache() { return stdinCache; }
     String logLevel() { return logLevel; }
+    boolean watch() { return watch; }
+    Long watchSettleSeconds() { return watchSettleSeconds; }
+    Map<String, FFLHookResponder> responders() { return responders; }
+    String hookEndpointProxy() { return hookEndpointProxy; }
 
     public static final class Builder {
         private String name;
@@ -141,6 +158,10 @@ public final class ShareOptions {
         private OptionalArgument<Path> qr = OptionalArgument.absent();
         private String stdinCache;
         private String logLevel;
+        private boolean watch;
+        private Long watchSettleSeconds;
+        private final Map<String, FFLHookResponder> responders = new LinkedHashMap<>();
+        private String hookEndpointProxy;
 
         private Builder() {}
 
@@ -185,8 +206,75 @@ public final class ShareOptions {
         public Builder qr(Path value) { qr = OptionalArgument.value(value); return this; }
         public Builder stdinCache(String value) { stdinCache = value; return this; }
         public Builder logLevel(String value) { logLevel = value; return this; }
+        /** Watches a folder and publishes each new direct child folder as an immutable delivery. */
+        public Builder watch(boolean value) { watch = value; return this; }
+        /** Seconds a new delivery folder must stay unchanged before it is published (core default: 5). */
+        public Builder watchSettleSeconds(long value) { watchSettleSeconds = value; return this; }
+
+        /**
+         * Answers every {@code eventName} hook event with the responder's JSON while the share runs.
+         * Registering the same event again replaces the earlier responder. Requires ffl-java's own
+         * hook channel, i.e. {@link #captureHookEvents(boolean)} left enabled.
+         */
+        public Builder respondTo(String eventName, FFLHookResponder responder) {
+            Objects.requireNonNull(eventName, "eventName");
+            Objects.requireNonNull(responder, "responder");
+            if (eventName.isBlank()) {
+                throw new IllegalArgumentException("eventName must not be blank");
+            }
+            responders.put(eventName, responder);
+            return this;
+        }
+
+        /**
+         * Decides cloud uploads that cost points: the FFL core asks before spending and waits for the
+         * answer, so the decision may block while a user is consulted.
+         */
+        public Builder uploadConfirmation(Predicate<FFLHookEvent> decision) {
+            Objects.requireNonNull(decision, "decision");
+            return respondTo(FFLHookEvents.UPLOAD_CONFIRM, event -> Map.of("confirmed", decision.test(event)));
+        }
+
+        /**
+         * Serves the routes an {@link FFLHookEvents#ENDPOINTS_REGISTER} responder registers. The FFL core
+         * proxies every request for such a route (for example the share page's {@code /manifest} and
+         * {@code /thumb}) to the hook URL's host and port, which is ffl-java's own receiver; with a base
+         * URL set here the receiver forwards method, path, query, headers and body to
+         * {@code baseUrl + path} and relays the upstream status, headers and body back. Requires
+         * {@link #captureHookEvents(boolean)} left enabled.
+         */
+        public Builder hookEndpointProxy(String baseUrl) {
+            Objects.requireNonNull(baseUrl, "baseUrl");
+            String normalized = baseUrl.strip();
+            java.net.URI uri;
+            try {
+                uri = java.net.URI.create(normalized);
+            } catch (IllegalArgumentException malformed) {
+                throw new IllegalArgumentException("hookEndpointProxy must be an http(s)://host[:port] base URL: " + baseUrl, malformed);
+            }
+            String scheme = uri.getScheme();
+            if (scheme == null || uri.getHost() == null
+                || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
+                throw new IllegalArgumentException("hookEndpointProxy must be an http(s)://host[:port] base URL: " + baseUrl);
+            }
+            while (normalized.endsWith("/")) {
+                normalized = normalized.substring(0, normalized.length() - 1);
+            }
+            hookEndpointProxy = normalized;
+            return this;
+        }
 
         public ShareOptions build() {
+            if (!captureHookEvents && hookEndpointProxy != null) {
+                throw new IllegalStateException(
+                    "The hook endpoint proxy needs ffl-java's hook channel; keep captureHookEvents enabled or drop it"
+                );
+            }
+            if (!captureHookEvents && !responders.isEmpty()) {
+                throw new IllegalStateException(
+                    "Hook responders need ffl-java's hook channel; keep captureHookEvents enabled or drop the responders"
+                );
+            }
             return new ShareOptions(this);
         }
     }

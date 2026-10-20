@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -33,6 +32,24 @@ public final class ShareSession implements AutoCloseable {
         return session.argv();
     }
 
+    /** Every stdout line of the FFL process, replayed from the start and then live; see {@link ProcessSession#onStdoutLine}. */
+    public ShareSession onStdoutLine(Consumer<String> listener) {
+        session.onStdoutLine(listener);
+        return this;
+    }
+
+    /** Every stderr line (the core's logger and tracebacks go there), replayed then live; see {@link ProcessSession#onStderrLine}. */
+    public ShareSession onStderrLine(Consumer<String> listener) {
+        session.onStderrLine(listener);
+        return this;
+    }
+
+    /**
+     * The share link from the core's {@code --json} result. The first call waits for that file
+     * (up to the schema's 20 seconds; a timeout throws {@link apebind.generated.ffl.APETimeoutException}
+     * and leaves the share running). In upload mode the core writes it only after the upload, so
+     * listen to the {@code link} event instead of calling this early.
+     */
     public String link() {
         Object result = session.result();
         if (!(result instanceof String link) || link.isBlank()) {
@@ -80,6 +97,19 @@ public final class ShareSession implements AutoCloseable {
         }
 
         eventChannel.on(name, listener);
+        return this;
+    }
+
+    /**
+     * Receives every hook event regardless of name (for a single dispatcher that keys on
+     * {@link FFLHookEvent#name()}); the events seen so far are replayed first, in order.
+     */
+    public ShareSession onAny(Consumer<FFLHookEvent> listener) {
+        if (eventChannel == null) {
+            throw new IllegalStateException("FFL hook events are not available for this session");
+        }
+
+        eventChannel.onAny(listener);
         return this;
     }
 
@@ -136,7 +166,7 @@ public final class ShareSession implements AutoCloseable {
         List<Path> owned = List.copyOf(cleanupPaths);
         cleanupPaths.clear();
         for (Path path : owned) {
-            deleteRecursively(path);
+            TemporaryFiles.deleteRecursively(path);
         }
         if (eventChannel != null) {
             eventChannel.close();
@@ -146,19 +176,6 @@ public final class ShareSession implements AutoCloseable {
     private void raiseEventError() {
         if (eventChannel != null) {
             eventChannel.raiseIfError();
-        }
-    }
-
-    private static void deleteRecursively(Path path) {
-        if (!Files.exists(path)) {
-            return;
-        }
-        try (var stream = Files.walk(path)) {
-            for (Path item : stream.sorted(Comparator.reverseOrder()).toList()) {
-                Files.deleteIfExists(item);
-            }
-        } catch (IOException error) {
-            throw new IllegalStateException("Failed to clean FFL temporary path: " + path, error);
         }
     }
 }
