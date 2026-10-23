@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public final class FFLBinding {
+    private static final String BINARY_NAME = "ffl.com";
     private static final String OPERATIONS_JSON = """
         {
           "share": {
@@ -1874,20 +1875,22 @@ public final class FFLBinding {
           ]
         }
         """;
-    private static final String BINARY_NAME = "ffl.com";
     private static volatile FFLBinding defaultBinding;
+
     private final APEClient client;
 
     private FFLBinding(APEClient client) {
         this.client = client;
     }
 
-    /** The binding backed by {@link APERuntime#defaults()}, created on first use. */
+    /** The binding backed by {@link APERuntime#defaults()}: the bundled APE, extracted on first use. */
     public static FFLBinding defaults() {
         FFLBinding binding = defaultBinding;
+
         if (binding == null) {
             synchronized (FFLBinding.class) {
                 binding = defaultBinding;
+
                 if (binding == null) {
                     binding = create(APERuntime.defaults());
                     defaultBinding = binding;
@@ -1901,6 +1904,7 @@ public final class FFLBinding {
     /** A binding that launches the APE as described by {@code runtime}. */
     public static FFLBinding create(APERuntime runtime) {
         Objects.requireNonNull(runtime, "runtime");
+
         return new FFLBinding(new APEClient(
             BINARY_NAME,
             runtime,
@@ -1913,13 +1917,17 @@ public final class FFLBinding {
         return client.runtime();
     }
 
+
+
     public ProcessSession share(ShareParameters parameters) {
         Objects.requireNonNull(parameters, "parameters");
+
         return (ProcessSession) client.invoke(
             "share",
             parameters.toValues()
         );
     }
+
 
     public ProcessSession share(
         ShareParameters parameters,
@@ -1927,6 +1935,7 @@ public final class FFLBinding {
     ) {
         Objects.requireNonNull(parameters, "parameters");
         Objects.requireNonNull(stdinSource, "stdinSource");
+
         return (ProcessSession) client.invoke(
             "share",
             parameters.toValues(),
@@ -1939,6 +1948,7 @@ public final class FFLBinding {
         boolean captureStdout
     ) {
         Objects.requireNonNull(parameters, "parameters");
+
         return (ProcessSession) client.invoke(
             "share",
             parameters.toValues(),
@@ -2120,6 +2130,7 @@ public final class FFLBinding {
             private OptionalValue<String> receipt = OptionalValue.absent();
             private OptionalValue<String> receiptConfirm = OptionalValue.absent();
             private String preferredTunnel;
+
 
             public Builder paths(String value) {
                 this.paths = List.of(value);
@@ -2309,13 +2320,16 @@ public final class FFLBinding {
         }
     }
 
+
     public ProcessSession download(DownloadParameters parameters) {
         Objects.requireNonNull(parameters, "parameters");
+
         return (ProcessSession) client.invoke(
             "download",
             parameters.toValues()
         );
     }
+
 
     public ProcessSession download(
         DownloadParameters parameters,
@@ -2323,6 +2337,7 @@ public final class FFLBinding {
     ) {
         Objects.requireNonNull(parameters, "parameters");
         Objects.requireNonNull(stdinSource, "stdinSource");
+
         return (ProcessSession) client.invoke(
             "download",
             parameters.toValues(),
@@ -2335,6 +2350,7 @@ public final class FFLBinding {
         boolean captureStdout
     ) {
         Objects.requireNonNull(parameters, "parameters");
+
         return (ProcessSession) client.invoke(
             "download",
             parameters.toValues(),
@@ -2425,6 +2441,7 @@ public final class FFLBinding {
             private Path recipientPrivateKey;
             private Boolean stdout;
 
+
             public Builder url(String value) {
                 this.url = value;
                 return this;
@@ -2496,8 +2513,10 @@ public final class FFLBinding {
         }
     }
 
+
     public APEProcessResult keygen(KeygenParameters parameters) {
         Objects.requireNonNull(parameters, "parameters");
+
         return (APEProcessResult) client.invoke(
             "keygen",
             parameters.toValues()
@@ -2578,6 +2597,7 @@ public final class FFLBinding {
             private String recipientEmail;
             private String recipientOtpApiBase;
 
+
             public Builder version(Boolean value) {
                 this.version = value;
                 return this;
@@ -2641,8 +2661,10 @@ public final class FFLBinding {
         }
     }
 
+
     public String version(VersionParameters parameters) {
         Objects.requireNonNull(parameters, "parameters");
+
         return (String) client.invoke(
             "version",
             parameters.toValues()
@@ -2826,6 +2848,7 @@ public final class FFLBinding {
             private OptionalValue<String> receipt = OptionalValue.absent();
             private OptionalValue<String> receiptConfirm = OptionalValue.absent();
             private String preferredTunnel;
+
 
             public Builder paths(String value) {
                 this.paths = List.of(value);
@@ -3019,13 +3042,16 @@ public final class FFLBinding {
         }
     }
 
+
     public ProcessSession login(LoginParameters parameters) {
         Objects.requireNonNull(parameters, "parameters");
+
         return (ProcessSession) client.invoke(
             "login",
             parameters.toValues()
         );
     }
+
 
     public ProcessSession login(
         LoginParameters parameters,
@@ -3033,6 +3059,7 @@ public final class FFLBinding {
     ) {
         Objects.requireNonNull(parameters, "parameters");
         Objects.requireNonNull(stdinSource, "stdinSource");
+
         return (ProcessSession) client.invoke(
             "login",
             parameters.toValues(),
@@ -3045,6 +3072,7 @@ public final class FFLBinding {
         boolean captureStdout
     ) {
         Objects.requireNonNull(parameters, "parameters");
+
         return (ProcessSession) client.invoke(
             "login",
             parameters.toValues(),
@@ -3111,6 +3139,7 @@ public final class FFLBinding {
             private String pickupCode;
             private String recipientAuth;
 
+
             public Builder email(String value) {
                 this.email = value;
                 return this;
@@ -3158,8 +3187,10 @@ public final class FFLBinding {
         }
     }
 
+
     public APEProcessResult logout(LogoutParameters parameters) {
         Objects.requireNonNull(parameters, "parameters");
+
         return (APEProcessResult) client.invoke(
             "logout",
             parameters.toValues()
@@ -3216,6 +3247,7 @@ public final class FFLBinding {
             private String pickupCode;
             private String recipientAuth;
 
+
             public Builder version(Boolean value) {
                 this.version = value;
                 return this;
@@ -3255,8 +3287,10 @@ public final class FFLBinding {
         }
     }
 
+
     public String status(StatusParameters parameters) {
         Objects.requireNonNull(parameters, "parameters");
+
         return (String) client.invoke(
             "status",
             parameters.toValues()
@@ -3313,6 +3347,7 @@ public final class FFLBinding {
             private String pickupCode;
             private String recipientAuth;
 
+
             public Builder version(Boolean value) {
                 this.version = value;
                 return this;
@@ -3351,7 +3386,7 @@ public final class FFLBinding {
             }
         }
     }
-    public APEProcessResult raw(List<?> arguments) {
+public APEProcessResult raw(List<?> arguments) {
         return client.raw(arguments);
     }
 

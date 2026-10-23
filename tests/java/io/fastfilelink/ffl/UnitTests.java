@@ -724,15 +724,16 @@ public final class UnitTests {
     }
 
     private static ProcessSession newSession(Process child, boolean captureStdout) throws Exception {
-        Class<?> resultFile = Class.forName("apebind.generated.ffl.APEClient$ResultFile");
+        Class<?> resultFile = Class.forName("apebind.generated.ffl.APEClient$RuntimeFiles");
         Constructor<ProcessSession> constructor = ProcessSession.class.getDeclaredConstructor(
             Process.class,
             List.class,
             resultFile,
+            java.util.Map.class,
             boolean.class
         );
         constructor.setAccessible(true);
-        return constructor.newInstance(child, List.of("download"), null, captureStdout);
+        return constructor.newInstance(child, List.of("download"), null, null, captureStdout);
     }
 
     private static void testCallerManagedHook() {

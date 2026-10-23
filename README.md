@@ -239,7 +239,7 @@ Handwritten FFL semantics live under:
 src/main/java/io/fastfilelink/ffl/
 ```
 
-`python scripts/regenerate.py --ape /path/to/ffl.com` updates only the machine-owned
+`apebind generate` (see "Updating FFL" below) rewrites only the machine-owned
 layer.
 
 The binding workflow is:
@@ -277,16 +277,17 @@ python scripts/test.py real
 
 ## Updating FFL
 
-```bash
-python scripts/inspect.py --ape /path/to/new/ffl.com
+The generated layer under `src/main/java/apebind/generated/ffl/` is plain
+[APEBind](https://github.com/nuwainfo/apebind) output; never edit it by hand. When the
+core gains flags or commands, merge them into `binding/ffl.apebind.yaml` (hidden commands
+into `binding/ffl.commands.yaml`), replace `src/main/resources/apebind/ffl.com`, then
+regenerate from an APEBind checkout:
+
+```powershell
+python -m apebind generate ..\ffl-java\binding\ffl.apebind.yaml `
+    --ape ..\ffl-java\src\main\resources\apebind\ffl.com --lang java -o build\gen-ffl
+Copy-Item build\gen-ffl\src\main\java\apebind\generated\ffl\*.java ..\ffl-java\src\main\java\apebind\generated\ffl\
 ```
 
-Review the raw-schema diff, merge intended grammar changes into
-`binding/ffl.apebind.yaml`, then:
-
-```bash
-python scripts/regenerate.py --ape /path/to/new/ffl.com
-python scripts/test.py unit
-python scripts/test.py packaging
-python scripts/test.py real
-```
+Then run `scripts/test.ps1 unit` and `scripts/test.ps1 real`. `docs/apebind-upstream-notes.md`
+has the details, including the three generated classes FFL does not use.

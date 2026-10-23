@@ -1,103 +1,46 @@
-# Android support: what changed in the generated layer, and what could go back into APEBind
+# The generated layer is APEBind output
 
-ffl-java's `src/main/java/apebind/generated/ffl/` is APEBind output (v0.4.2 templates
-`ape_client`, `process_session`, `binding`, minus the JSONL pipe). The Android work
-edited it by hand because `regenerate.py` is not in this repo. This note lists every
-change so the FFL-agnostic parts can be folded into the APEBind templates and the next
-regeneration does not lose them. The handwritten `io.fastfilelink.ffl` layer is only
-summarized at the end.
+`src/main/java/apebind/generated/ffl/` is the unmodified output of APEBind's Java backend
+(`nuwainfo/apebind`, main after the 2026-10-20 Java backend changes: `APERuntime`,
+`Processes`, line/prompt listeners, lazy JSON-file results, `Json.stringify`, instance
+bindings, Android-safe APIs). Do not edit it by hand; regenerate it.
 
-## Generated layer
+## Regenerating
 
-### `APERuntime` (new)
+```powershell
+cd C:\Users\leo\work2\github\apebind
+python -m apebind generate C:\Users\leo\work2\github\ffl-java\binding\ffl.apebind.yaml `
+    --ape C:\Users\leo\work2\github\ffl-java\src\main\resources\apebind\ffl.com `
+    --lang java -o build\gen-ffl
+Copy-Item build\gen-ffl\src\main\java\apebind\generated\ffl\*.java `
+    C:\Users\leo\work2\github\ffl-java\src\main\java\apebind\generated\ffl\
+```
 
-Platform differences live in a value object instead of in code paths: `binary` (null =
-extract the bundled resource), `launcher` (argv prefix such as an `ape` loader),
-`shellWrapper` (false = exec directly; Android cannot spawn `/bin/sh -c` from an app),
-`workingDirectory`, `environment` overrides, `toBuilder()`. Candidate for the
-`ape_client` template as-is; nothing in it is FFL-specific.
+`generate` only copies the APE into the output's resources; it never runs it. Take the
+Java files only: the generated `pom.xml`, `README.md` and resources belong to the
+generated project, not to this one. The generator writes CRLF on Windows; the files in
+this repository are kept as LF.
 
-### `APEClient`
+Three generated classes are unused by FFL and stay for fidelity with the generator:
+`APEEvent`, `APEEventException`, `JSONLFileEventChannel` (the JSONL event pipe; the FFL
+schema declares no `events`, so no code path reaches them).
 
-- Constructor takes `(binaryName, APERuntime, operations, policy)`; the old
-  `(Path, operations, runtime)` constructor delegates to it. The resource binary is resolved
-  lazily through `BinaryResource.resolve(binaryName)` only when `runtime.binary()` is null.
-- `commandLine(argv)` and `environment()` are public: launcher prefix + binary + argv,
-  wrapped in `cmd.exe /d /s /c "call ..."` or `/bin/sh -c 'exec "$0" "$@"'` only when
-  `shellWrapper` is true. `spawn` applies `env_unset` from the schema policy, then the
-  runtime overrides, then `workingDirectory`.
-- Persistent operations with a `--json` result no longer block in `invoke`: the wait is
-  deferred into `ProcessSession.deferResult(...)` and happens on the first `result()`
-  call. A timeout throws `APETimeoutException` and leaves the process running.
-- Android API: `Files.readString`/`Path.of`/`InputStream.readAllBytes` replaced by
-  `Files.readAllBytes` + `new String(..., UTF_8)`, `Paths.get`, and a `readFully` copy
-  loop (API 26 has none of the Java 9-11 helpers; D8 backports only a fixed list).
-- WSL note: `wslInteropGuidance()` explains the binfmt interop failure when a `.com` is
-  launched from WSL.
+## What ffl-java adds on top
 
-All of the above is FFL-agnostic.
+Everything FFL-specific lives in `src/main/java/io/fastfilelink/ffl/` and only uses the
+generated layer's public API: `FFLBinding.defaults()` / `create(APERuntime)`, the
+operation methods, `ProcessSession` (`onStdoutLine`, `onStderrLine`, `onStdoutPrompt`,
+lazy `result()`, `stop`, `waitFor`), `Json.parse` / `Json.stringify`, `OptionalValue`.
+The schema (`binding/ffl.apebind.yaml`, `binding/ffl.commands.yaml`) is the only input
+that changes when the core gains flags or commands; `binding/ffl.hook-events.md`
+documents the hook event wire contract the handwritten layer relies on.
 
-### `ProcessSession` (+ `StreamCollector`)
+## Updating the core
 
-- `Processes.pid(process)` / `Processes.destroyTree(process, forcibly)` replace
-  `Process.pid()` and `ProcessHandle` (neither exists on Android). `Processes` probes
-  `toHandle`/`descendants` reflectively and falls back to `destroy` + `destroyForcibly`.
-- `StreamCollector` splits captured output into lines as bytes arrive and keeps them:
-  `onStdoutLine` / `onStderrLine` replay everything seen so far, then deliver live on the
-  collector thread. `onStdoutPrompt` reports text left unterminated for 300 ms (an
-  interactive `input()` prompt) once per prompt, via a shared daemon scheduler.
-- `attachStdin` flushes after every line so an interactive core sees each answer at once.
-- `result()` is lazy as described above (`pendingResult` + `resultLock`); `setResult` is
-  unused but kept.
-- `ByteArrayOutputStream.toString(Charset)` replaced by `new String(toByteArray(), cs)`.
-
-FFL-agnostic; the prompt detection is generic "process waits for stdin" support.
-
-### `Json`
-
-`Json.stringify(Object)` added (maps with string keys, collections, strings, booleans,
-numbers, null) so responders can answer hook events without a JSON library. The
-`parseNumber` bug reported separately by the Android team is unchanged here.
-
-### `FFLBinding` (schema-driven)
-
-Regenerated by hand from `binding/ffl.apebind.yaml` additions: operations `login`
-(`--email`, `--mode {web,cli}`), `logout`, `status` (format `text`); share `--watch`,
-`--watch-settle`; download `--follow`; the global options (`--version`, `--cli`,
-`--log-level`, `--proxy`, `--hook`, `--enable-reporting`, `--pickup-code`,
-`--recipient-auth`) on the new operations; `binding/ffl.commands.yaml` lists the three
-hidden commands. The bundled `ffl.com` is FastFileLink 4.2.3.
-
-### Unchanged except line endings
-
-`APEProcessException`, `APEProcessResult`, `APETimeoutException`, `BinaryResource`,
-`OptionalValue` show as modified only because the checkout is CRLF.
-
-## Handwritten layer (not APEBind material)
-
-New: `FFLHookReceiver` (plain `java.net` HTTP/1.1 receiver; `com.sun.net.httpserver`
-does not exist on Android) with the hook endpoint proxy, `FFLHookResponder`,
-`FFLHookEvents` (wire names), `FFLEnvironment`, `LoginSession`/`LoginResult`/
-`AuthStatus`, `StdinFeed`, `TemporaryFiles`. Changed: `FFLClient` (runtime-aware,
-`shareVfs("vfs://...")`, `login`/`status`/`logout`, English binding for `status`),
-`FFLHookEventChannel` (responders, `onAny`, `HttpURLConnection` forwarding),
-`ShareOptions` (`respondTo`, `uploadConfirmation`, `hookEndpointProxy`, `watch`),
-`ShareSession` (line listeners, `onAny`, lazy `link()`), `FFLHookEvent`,
-`FFLResultParser`, `DownloadOptions`, `FFL`.
-
-## Platform facts worth keeping
-
-- Android minSdk 26 is enough without core library desugaring: the only Java 9-11
-  helpers used (`String.isBlank/strip/repeat`, `List/Set/Map.of/copyOf`) are on D8's
-  `BackportedMethodList --min-api 26`; records are desugared by D8. A javap scan of the
-  final 64 classes against `android-36/data/api-versions.xml` reports only the
-  `java.lang.Record` references (API 34, desugared).
-- `scripts/build-android.{ps1,sh}` produce the slim JAR an app embeds (classes only, no
-  `apebind/ffl.com`); `pom.xml` is CRLF, hence the `tr -d '\r'` in the shell script.
-- The core's hook routes (`/manifest`, `/thumb`, ...) are proxied to the hook URL's
-  host:port; with ffl-java's own receiver that needs `ShareOptions.hookEndpointProxy`.
-
-## Verification state
-
-`scripts/test.ps1 unit`: 78 tests. `scripts/test.ps1 real`: run on Windows by a human after
-the final change (it creates real shares). Android: validated on a device with FFL 4.2.3.
+1. Replace `src/main/resources/apebind/ffl.com` with the new APE (the Android app ships
+   the same file as `jniLibs/<abi>/libffl.so`).
+2. Diff the core's `--help` output against `binding/ffl.apebind.yaml`; add new flags or
+   commands to the yaml (and `ffl.commands.yaml` for hidden commands).
+3. Regenerate as above, then `scripts/test.ps1 unit` and `scripts/test.ps1 real`
+   (the real suite creates real shares; run it on Windows).
+4. For Android, rebuild the slim JAR with `scripts/build-android.ps1`.
