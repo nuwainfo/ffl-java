@@ -4,7 +4,7 @@
 param([string]$Output = '')
 $root = Resolve-Path "$PSScriptRoot/.."
 $version = ([xml](Get-Content "$root/pom.xml")).project.version
-if ($Output -eq '') { $Output = Join-Path $root "build/android/ffl-java-$version-android.jar" }
+if ($Output -eq '') { $Output = Join-Path $root "build/android/ffl-java-$version.jar" }
 $classes = Join-Path $root 'build/android/classes'
 Remove-Item -LiteralPath $classes -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $classes, (Split-Path -Parent $Output) | Out-Null

@@ -177,7 +177,7 @@ options)` and point `ShareOptions.Builder.hookEndpointProxy("http://127.0.0.1:po
 same server so the share page's `/manifest` and `/thumb` routes reach it. The hook receiver
 runs on a loopback `ServerSocket`, so the app needs no `com.sun.net.httpserver`.
 
-`scripts/build-android.ps1` (or `.sh`) builds `build/android/ffl-java-<version>-android.jar`:
+`scripts/build-android.ps1` (or `.sh`) builds `build/android/ffl-java-<version>.jar`:
 the compiled classes without the 48 MB `apebind/ffl.com`, for `implementation files(...)` in
 Gradle. `docs/apebind-upstream-notes.md` lists the generated-layer changes behind all this.
 

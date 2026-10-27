@@ -5,7 +5,7 @@
 set -eu
 root=$(cd "$(dirname "$0")/.." && pwd)
 version=$(sed -n 's#^  <version>\(.*\)</version>#\1#p' "$root/pom.xml" | head -n 1 | tr -d '\r')
-output=${1:-"$root/build/android/ffl-java-$version-android.jar"}
+output=${1:-"$root/build/android/ffl-java-$version.jar"}
 classes="$root/build/android/classes"
 rm -rf "$classes"
 mkdir -p "$classes" "$(dirname "$output")"
